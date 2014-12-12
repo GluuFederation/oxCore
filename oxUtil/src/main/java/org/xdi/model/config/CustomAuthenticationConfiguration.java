@@ -9,6 +9,8 @@ package org.xdi.model.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.Transient;
+
 import org.xdi.model.AuthenticationScriptUsageType;
 import org.xdi.model.SimpleCustomProperty;
 
@@ -29,6 +31,12 @@ public class CustomAuthenticationConfiguration {
 
 	private List<SimpleCustomProperty> customAuthenticationAttributes;
 	private String customAuthenticationScript;
+	
+	@Transient
+	private transient String dn;
+
+	@Transient
+	private transient String inum;
 	
 	public CustomAuthenticationConfiguration() {
 		this.customAuthenticationAttributes = new ArrayList<SimpleCustomProperty>();
@@ -96,6 +104,22 @@ public class CustomAuthenticationConfiguration {
 
 	public void setCustomAuthenticationScript(String customAuthenticationScript) {
 		this.customAuthenticationScript = customAuthenticationScript;
+	}
+
+	public String getDn() {
+		return dn;
+	}
+
+	public void setDn(String dn) {
+		this.dn = dn;
+	}
+
+	public String getInum() {
+		return inum;
+	}
+
+	public void setInum(String inum) {
+		this.inum = inum;
 	}
 
 }

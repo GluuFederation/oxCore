@@ -31,7 +31,7 @@ public class CustomScript extends BaseEntry {
 	private String inum;
 
     @NotNull(message = "Name should be not empty")
-    @LdapAttribute(name = "name")
+    @LdapAttribute(name = "displayName")
 	private String name;
 
     @LdapAttribute(name = "description")
@@ -67,6 +67,12 @@ public class CustomScript extends BaseEntry {
     private boolean modified;
 
 	public CustomScript() {}
+
+	public CustomScript(String dn, String inum, String name) {
+		super(dn);
+		this.inum = inum;
+		this.name = name;
+	}
 
 	public CustomScript(CustomScript customScript) {
 		super(customScript.getDn());

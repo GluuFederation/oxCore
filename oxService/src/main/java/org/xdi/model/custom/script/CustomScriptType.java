@@ -17,11 +17,15 @@ import org.xdi.model.custom.script.type.auth.CustomAuthenticatorType;
 import org.xdi.model.custom.script.type.auth.DummyCustomAuthenticatorType;
 import org.xdi.model.custom.script.type.client.ClientRegistrationType;
 import org.xdi.model.custom.script.type.client.DummyClientRegistrationType;
+import org.xdi.model.custom.script.type.id.DummyIdGeneratorType;
+import org.xdi.model.custom.script.type.id.IdGeneratorType;
 import org.xdi.model.custom.script.type.uma.DummyAuthorizationPolicyType;
 import org.xdi.model.custom.script.type.uma.AuthorizationPolicyType;
 import org.xdi.model.custom.script.type.user.CacheRefreshType;
 import org.xdi.model.custom.script.type.user.DummyCacheRefreshType;
+import org.xdi.model.custom.script.type.user.DummyUpdateUserType;
 import org.xdi.model.custom.script.type.user.DummyUserRegistrationType;
+import org.xdi.model.custom.script.type.user.UpdateUserType;
 import org.xdi.model.custom.script.type.user.UserRegistrationType;
 
 /**
@@ -31,10 +35,12 @@ import org.xdi.model.custom.script.type.user.UserRegistrationType;
  */
 public enum CustomScriptType implements LdapEnum {
 	
-	CUSTOM_AUTHENTICATION("custom_authentication", "Custom Authentication", CustomAuthenticatorType.class, AuthenticationCustomScript.class, "ExternalAuthenticator", new DummyCustomAuthenticatorType()),
+	CUSTOM_AUTHENTICATION("custom_authentication", "Custom Authentication", CustomAuthenticatorType.class, AuthenticationCustomScript.class, "CustomAuthenticator", new DummyCustomAuthenticatorType()),
 	CACHE_REFRESH("cache_refresh", "Cache Refresh", CacheRefreshType.class, CustomScript.class, "CacheRefresh", new DummyCacheRefreshType()),
-	CLIENT_REGISTRATION("client_registration", "Client Registration", ClientRegistrationType.class, CustomScript.class, "ClientRegistration", new DummyClientRegistrationType()),
+	UPDATE_USER("update_user", "Update User", UpdateUserType.class, CustomScript.class, "UpdateUser", new DummyUpdateUserType()),
 	USER_REGISTRATION("user_registration", "User Registration", UserRegistrationType.class, CustomScript.class, "UserRegistration", new DummyUserRegistrationType()),
+	CLIENT_REGISTRATION("client_registration", "Client Registration", ClientRegistrationType.class, CustomScript.class, "ClientRegistration", new DummyClientRegistrationType()),
+	ID_GENERATOR("id_generator", "Id Generator", IdGeneratorType.class, CustomScript.class, "IdGenerator", new DummyIdGeneratorType()),
 	UMA_AUTHORIZATION_POLICY("uma_authorization_policy", "UMA Authorization Policies", AuthorizationPolicyType.class, CustomScript.class, "AuthorizationPolicy", new DummyAuthorizationPolicyType());
 
 	private String value;

@@ -3,7 +3,7 @@
     <groupId>org.xdi</groupId>
     <artifactId>oxCore</artifactId>
     <packaging>pom</packaging>
-    <version>2.3.1.Final</version>
+    <version>2.3.2.Final</version>
     <name>oxCore</name>
     <url>http://ox.gluu.org</url>
 
@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <maven.min-version>3.0.3</maven.min-version>
-        <seam.version>2.3.1.Final</seam.version>
+        <seam.version>2.3.2.Final</seam.version>
         <richfaces.version>4.3.4.Final</richfaces.version>
         <jackson.version>1.9.13</jackson.version>
         <resteasy.version>2.3.4.Final</resteasy.version>

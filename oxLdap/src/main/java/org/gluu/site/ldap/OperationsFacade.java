@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.unboundid.util.LDAPTestUtils;
 import org.apache.log4j.Logger;
 import org.gluu.site.ldap.exception.ConnectionException;
 import org.gluu.site.ldap.exception.DuplicateEntryException;
@@ -285,6 +286,13 @@ public class OperationsFacade {
 			new VirtualListViewRequestControl(targetOffset, beforeCount, afterCount, contentCount, null)
 		);
 
+		String[] supportedControlOIDs = getConnectionPool().getRootDSE().getSupportedControlOIDs();
+		log.info("----- START : Supported OIDs -----");
+		for (String supportedControlOID : supportedControlOIDs) {
+			log.info("##### supportedControlOID = " + supportedControlOID);
+		}
+		log.info("----- END : Supported OIDs -----\n");
+
 		SearchResult searchResult = getConnectionPool().search(searchRequest);
 
 		/*
@@ -293,7 +301,21 @@ public class OperationsFacade {
 		}
 		*/
 
-		// LDAPTestUtils.assertHasControl(searchResult, VirtualListViewResponseControl.VIRTUAL_LIST_VIEW_RESPONSE_OID);
+		Control[] responseControls = searchResult.getResponseControls();
+		log.info("----- START : Returned Response Controls -----");
+		for (Control responseControl : responseControls) {
+			log.info("##### responseControl name = " + responseControl.getControlName());
+			log.info("##### responseControl OID = " + responseControl.getOID());
+		}
+		log.info("----- END : Returned Response Controls -----\n");
+
+		log.info("----- START : Search results -----");
+		for (SearchResultEntry searchResultEntry : searchResult.getSearchEntries()) {
+			log.info("##### searchResultEntry = " + searchResultEntry.toString());
+		}
+		log.info("----- END : Search results -----\n");
+
+		LDAPTestUtils.assertHasControl(searchResult, VirtualListViewResponseControl.VIRTUAL_LIST_VIEW_RESPONSE_OID);
 
 		VirtualListViewResponseControl vlvResponseControl = VirtualListViewResponseControl.get(searchResult);
 

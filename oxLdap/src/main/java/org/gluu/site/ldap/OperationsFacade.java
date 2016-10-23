@@ -287,11 +287,13 @@ public class OperationsFacade {
 		);
 
 		String[] supportedControlOIDs = getConnectionPool().getRootDSE().getSupportedControlOIDs();
-		log.info("----- START : Supported OIDs -----");
+		log.info("----- START : Supported Control OIDs -----");
 		for (String supportedControlOID : supportedControlOIDs) {
-			log.info("##### supportedControlOID = " + supportedControlOID);
+			log.info("##### ontrol OID = " + supportedControlOID);
 		}
-		log.info("----- END : Supported OIDs -----\n");
+		log.info("----- END : Supported Control OIDs -----\n");
+
+		log.info("##### supports VLV request control? (" + VirtualListViewRequestControl.VIRTUAL_LIST_VIEW_REQUEST_OID + ") = " + getConnectionPool().getRootDSE().supportsControl(VirtualListViewRequestControl.VIRTUAL_LIST_VIEW_REQUEST_OID) + "\n");
 
 		SearchResult searchResult = getConnectionPool().search(searchRequest);
 
@@ -304,8 +306,7 @@ public class OperationsFacade {
 		Control[] responseControls = searchResult.getResponseControls();
 		log.info("----- START : Returned Response Controls -----");
 		for (Control responseControl : responseControls) {
-			log.info("##### responseControl name = " + responseControl.getControlName());
-			log.info("##### responseControl OID = " + responseControl.getOID());
+			log.info("##### response control OID = " + responseControl.getOID() + ", name = " + responseControl.getControlName());
 		}
 		log.info("----- END : Returned Response Controls -----\n");
 

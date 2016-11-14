@@ -259,7 +259,6 @@ public class OperationsFacade {
 	}
 
 	public SearchResult searchVirtualListView(String dn, Filter filter, SearchScope scope, int startIndex, int count, String sortBy, SortOrder sortOrder, VirtualListViewResponse vlvResponse, String... attributes) throws Exception {
-
 		SearchRequest searchRequest;
 
 		if (attributes == null) {

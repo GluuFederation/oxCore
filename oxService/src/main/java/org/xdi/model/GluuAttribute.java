@@ -8,6 +8,10 @@ package org.xdi.model;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.FacesContext;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -450,5 +454,27 @@ public class GluuAttribute extends Entry implements Serializable {
 		} else if (!description.equals(other.description))
 			return false;
         return true;
+	}
+	
+	public void validateAttribute(FacesContext context, UIComponent comp, Object value) {
+		// Regex Pattern Validation
+		String attribute = (String) value;		
+		if((this.name.equalsIgnoreCase("mail"))){
+			String regexpValue = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@" +
+		            "[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
+			java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regexpValue);
+			if ((attribute != null) && !(attribute.trim().equals(""))) {
+				java.util.regex.Matcher matcher = pattern.matcher(attribute);
+				boolean flag = matcher.matches();
+				if (!flag) {
+					((UIInput) comp).setValid(false);
+
+					FacesMessage message = new FacesMessage(this.displayName + " Format is invalid. ");
+					message.setSeverity(FacesMessage.SEVERITY_ERROR);
+					context.addMessage(comp.getClientId(context), message);
+				}
+			}
+		}
+
 	}
 }

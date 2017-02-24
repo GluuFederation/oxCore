@@ -4,7 +4,7 @@
     <groupId>org.xdi</groupId>
     <artifactId>oxCore</artifactId>
     <packaging>pom</packaging>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
     <name>oxCore</name>
     <url>http://ox.gluu.org</url>
 

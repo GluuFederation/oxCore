@@ -4,7 +4,7 @@
     <groupId>org.xdi</groupId>
     <artifactId>oxCore</artifactId>
     <packaging>pom</packaging>
-    <version>3.0.1</version>
+    <version>3.0.2</version>
     <name>oxCore</name>
     <url>http://ox.gluu.org</url>
 
@@ -20,7 +20,7 @@
         <richfaces.version>4.3.7.Final</richfaces.version>
         <jackson.version>1.9.13</jackson.version>
         <resteasy.version>2.3.4.Final</resteasy.version>
-        <gxt.version>3.0.1</gxt.version>
+        <gxt.version>3.0.2</gxt.version>
         <gwt.version>2.5.0</gwt.version>
     </properties>
 

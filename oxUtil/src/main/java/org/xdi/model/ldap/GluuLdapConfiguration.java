@@ -21,7 +21,7 @@ import org.xdi.model.SimpleProperty;
  * 
  * @author Yuriy Movchan Date: 07.29.2011
  */
-@JsonPropertyOrder({ "configId", "bindDN", "bindPassword", "servers", "maxConnections", "useSSL", "baseDNs", "primaryKey", "localPrimaryKey", "useAnonymousBind", "enabled", "version" })
+@JsonPropertyOrder({ "configId", "bindDN", "bindPassword", "servers", "maxConnections", "useSSL", "baseDNs", "primaryKey", "localPrimaryKey", "enabled", "version" })
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GluuLdapConfiguration implements Serializable {
 
@@ -48,7 +48,6 @@ public class GluuLdapConfiguration implements Serializable {
 
 	private String primaryKey;
 	private String localPrimaryKey;
-	private boolean useAnonymousBind;
 	private boolean enabled;
 	private int version;
 	
@@ -81,8 +80,7 @@ public class GluuLdapConfiguration implements Serializable {
 		this.baseDNsStringsList = baseDNs;
 		this.primaryKey = primaryKey;
 		this.localPrimaryKey = localPrimaryKey;
-		this.useAnonymousBind = useAnonymousBind;
-
+	
 		updateSimplePropertiesLists();
 	}
 
@@ -156,14 +154,6 @@ public class GluuLdapConfiguration implements Serializable {
 
 	public void setLocalPrimaryKey(String localPrimaryKey) {
 		this.localPrimaryKey = localPrimaryKey;
-	}
-
-	public boolean isUseAnonymousBind() {
-		return useAnonymousBind;
-	}
-
-	public void setUseAnonymousBind(boolean useAnonymousBind) {
-		this.useAnonymousBind = useAnonymousBind;
 	}
 
 	public boolean isEnabled() {
@@ -253,7 +243,6 @@ public class GluuLdapConfiguration implements Serializable {
 		result = prime * result + maxConnections;
 		result = prime * result + ((primaryKey == null) ? 0 : primaryKey.hashCode());
 		result = prime * result + ((servers == null) ? 0 : servers.hashCode());
-		result = prime * result + (useAnonymousBind ? 1231 : 1237);
 		result = prime * result + (useSSL ? 1231 : 1237);
 		result = prime * result + version;
 		return result;
@@ -326,9 +315,6 @@ public class GluuLdapConfiguration implements Serializable {
 		} else if (!servers.equals(other.servers)) {
 			return false;
 		}
-		if (useAnonymousBind != other.useAnonymousBind) {
-			return false;
-		}
 		if (useSSL != other.useSSL) {
 			return false;
 		}
@@ -344,8 +330,8 @@ public class GluuLdapConfiguration implements Serializable {
 		builder.append("GluuLdapConfiguration [configId=").append(configId).append(", bindDN=").append(bindDN).append(", bindPassword=")
 				.append(bindPassword).append(", servers=").append(servers).append(", maxConnections=").append(maxConnections)
 				.append(", useSSL=").append(useSSL).append(", baseDNs=").append(baseDNs).append(", primaryKey=").append(primaryKey)
-				.append(", localPrimaryKey=").append(localPrimaryKey).append(", useAnonymousBind=").append(useAnonymousBind)
-				.append(", enabled=").append(enabled).append(", version=").append(version).append("]");
+				.append(", localPrimaryKey=").append(localPrimaryKey).append(", enabled=").append(enabled).append(", version=")
+				.append(version).append("]");
 		return builder.toString();
 	}
 

@@ -171,6 +171,8 @@ public class AppConfiguration implements Configuration, Serializable {
 
 	private int metricReporterInterval;
 
+	private String attributeResolverPath;
+	
 	public boolean isOxIncommonFlag() {
 		return oxIncommonFlag;
 	}
@@ -903,4 +905,12 @@ public class AppConfiguration implements Configuration, Serializable {
 		this.metricReporterInterval = metricReporterInterval;
 	}
 
+	public String getAttributeResolverPath() {
+		return attributeResolverPath;
+	}
+
+	public void setAttributeResolverPath(String attributeResolverPath) {
+		this.attributeResolverPath = attributeResolverPath;
+	}
+	
 }

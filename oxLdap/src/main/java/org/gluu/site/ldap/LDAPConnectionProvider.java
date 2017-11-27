@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.gluu.site.ldap.persistence.exception.InvalidConfigurationException;
 import org.xdi.util.ArrayHelper;
 import org.xdi.util.StringHelper;
 import org.xdi.util.security.StringEncrypter.EncryptionException;
@@ -56,7 +57,7 @@ public class LDAPConnectionProvider {
 	private String sslKeyStore;
 	private String sslKeyStorePin;
 
-	private ArrayList<String> binaryAttributes;
+	private ArrayList<String> binaryAttributes, certificateAttributes;
 
 	private boolean supportsSubtreeDeleteRequestControl;
 
@@ -99,7 +100,11 @@ public class LDAPConnectionProvider {
 		this.ports = new int[this.servers.length];
 		for (int i = 0; i < this.servers.length; i++) {
 			String str = this.servers[i];
-			this.addresses[i] = str.substring(0, str.indexOf(":")).trim();
+			int idx = str.indexOf(":");
+			if (idx == -1) {
+				throw new InvalidConfigurationException("Ldap server settings should be in format server:port");
+			}
+			this.addresses[i] = str.substring(0, idx).trim();
 			this.ports[i] = Integer.parseInt(str.substring(str.indexOf(":") + 1, str.length()));
 		}
 
@@ -156,6 +161,12 @@ public class LDAPConnectionProvider {
 		}
 		log.debug("Using next binary attributes: " + this.binaryAttributes);
 		
+		this.certificateAttributes = new ArrayList<String>();
+		if (props.containsKey("certificateAttributes")) {
+			String[] binaryAttrs = StringHelper.split(props.get("certificateAttributes").toString().toLowerCase(), ",");
+			this.certificateAttributes.addAll(Arrays.asList(binaryAttrs));
+		}
+		log.debug("Using next binary certificateAttributes: " + this.certificateAttributes);
 		
 		this.supportedLDAPVersion = determineSupportedLdapVersion();
 		this.subschemaSubentry = determineSubschemaSubentry();
@@ -457,12 +468,24 @@ public class LDAPConnectionProvider {
 		return binaryAttributes;
 	}
 
+	public ArrayList<String> getCertificateAttributes() {
+		return certificateAttributes;
+	}
+
 	public boolean isBinaryAttribute(String attributeName) {
 		if (StringHelper.isEmpty(attributeName)) {
 			return false;
 		}
 
 		return binaryAttributes.contains(attributeName.toLowerCase());
+	}
+
+	public boolean isCertificateAttribute(String attributeName) {
+		if (StringHelper.isEmpty(attributeName)) {
+			return false;
+		}
+
+		return certificateAttributes.contains(attributeName.toLowerCase());
 	}
 
 }

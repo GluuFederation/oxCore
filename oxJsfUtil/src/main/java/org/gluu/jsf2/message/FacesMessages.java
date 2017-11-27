@@ -1,6 +1,8 @@
 package org.gluu.jsf2.message;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.el.ELContext;
 import javax.el.ExpressionFactory;
@@ -11,6 +13,8 @@ import javax.faces.application.FacesMessage.Severity;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
+
+import org.xdi.service.el.ExpressionEvaluator;
 
 /**
  * @author Yuriy Movchan
@@ -27,6 +31,9 @@ public class FacesMessages implements Serializable {
 	@Inject
 	private ExternalContext externalContext;
 
+	@Inject
+	private ExpressionEvaluator expressionEvaluator;
+
 	public void add(Severity severity, String message) {
 		String evaluatedMessage = evalAsString(message);
 		facesContext.addMessage(null, new FacesMessage(severity, evaluatedMessage, evaluatedMessage));
@@ -39,7 +46,7 @@ public class FacesMessages implements Serializable {
 		setKeepMessages();
 	}
 
-	public void add(Severity severity, String message, Object... params) {
+	public void add(Severity severity, String message, Object ... params) {
 		String fomrattedMessage = String.format(message, params); 
 
 		add(severity, fomrattedMessage);
@@ -58,4 +65,19 @@ public class FacesMessages implements Serializable {
 
 		return result;
 	}
+
+	public String evalResourceAsString(String resource) {
+		// Get resource message
+		String resourceMessage = evalAsString(resource);
+
+		// Evaluate resource message
+		String message = evalAsString(resourceMessage);
+
+		return message;
+	}
+
+	public String evalAsString(String expression, Map<String, Object> parameters) {
+		return expressionEvaluator.evaluateValueExpression(expression, String.class, parameters);
+	}
+
 }

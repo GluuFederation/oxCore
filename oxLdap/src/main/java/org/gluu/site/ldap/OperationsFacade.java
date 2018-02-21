@@ -383,7 +383,7 @@ public class OperationsFacade {
 		List<SearchResultEntry> resultSearchResultEntries = searchResult.getSearchEntries();
 		int totalResults = resultSearchResultEntries.size();
 
-		sortListByAttributes(searchResultEntries, false, sortBy);
+		sortListByAttributes(resultSearchResultEntries, false, sortBy);
 
 		List<SearchResultEntry> searchResultEntryList = new ArrayList<SearchResultEntry>();
 

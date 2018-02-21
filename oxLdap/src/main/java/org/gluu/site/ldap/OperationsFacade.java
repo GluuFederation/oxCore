@@ -7,20 +7,13 @@
 package org.gluu.site.ldap;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import org.apache.log4j.Logger;
 import org.gluu.site.ldap.exception.ConnectionException;
 import org.gluu.site.ldap.exception.DuplicateEntryException;
 import org.gluu.site.ldap.exception.InvalidSimplePageControlException;
 import org.gluu.site.ldap.persistence.BatchOperation;
-import org.gluu.site.ldap.persistence.exception.InvalidArgumentException;
 import org.gluu.site.ldap.persistence.exception.MappingException;
 import org.xdi.ldap.model.SearchScope;
 import org.xdi.ldap.model.SortOrder;
@@ -383,7 +376,9 @@ public class OperationsFacade {
 		List<SearchResultEntry> resultSearchResultEntries = searchResult.getSearchEntries();
 		int totalResults = resultSearchResultEntries.size();
 
-		sortListByAttributes(searchResultEntries, false, sortBy);
+        boolean ascending = sortOrder==null || !sortOrder.equals(SortOrder.DESCENDING);
+        SearchResultEntryComparator<SearchResultEntry> comparator = new SearchResultEntryComparator<SearchResultEntry>(new String[]{sortBy}, false, ascending);
+        resultSearchResultEntries=sortListByAttributes(resultSearchResultEntries, comparator, SearchResultEntry.class);
 
 		List<SearchResultEntry> searchResultEntryList = new ArrayList<SearchResultEntry>();
 
@@ -700,82 +695,104 @@ public class OperationsFacade {
 		return this.connectionProvider.getCertificateAttributeName(attributeName);
 	}
 
-	public <T> void sortListByAttributes(List<T> searchResultEntries, boolean caseSensetive, String... sortByAttributes) {
+	public <T> List<T> sortListByAttributes(List<T> searchResultEntries, Comparator<T> comparator, Class<T> cls) {
 		// Check input parameters
 		if (searchResultEntries == null) {
 			throw new MappingException("Entries list to sort is null");
 		}
 
-		if ((searchResultEntries == null) || (searchResultEntries.size() == 0)) {
-			return;
+		if (searchResultEntries.size() == 0) {
+			return searchResultEntries;
 		}
 
-		if ((sortByAttributes == null) || (sortByAttributes.length == 0)) {
-			throw new InvalidArgumentException("Invalid list of sortBy properties " + Arrays.toString(sortByAttributes));
-		}
+		//The following line does not work because of type erasure
+		//T array[]=(T[])searchResultEntries.toArray();
 
-		SearchResultEntryComparator<T> comparator = new SearchResultEntryComparator<T>(sortByAttributes, caseSensetive);
-		Collections.sort(searchResultEntries, comparator);
+        T dummyArr[]=(T[]) java.lang.reflect.Array.newInstance(cls, 0);
+        T array[]=searchResultEntries.toArray(dummyArr);
+		Arrays.sort(array, comparator);
+		return Arrays.asList(array);
+
 	}
 
 	private static final class SearchResultEntryComparator<T> implements Comparator<T>, Serializable {
 
 		private static final long serialVersionUID = 574848841116711467L;
 		private String[] sortByAttributes;
-		private boolean caseSensetive;
+		private boolean caseSensitive;
+		private boolean ascending;
 
-		private SearchResultEntryComparator(String[] sortByAttributes, boolean caseSensetive) {
+		private SearchResultEntryComparator(String[] sortByAttributes, boolean caseSensitive, boolean ascending) {
 			this.sortByAttributes = sortByAttributes;
-			this.caseSensetive = caseSensetive;
+			this.caseSensitive = caseSensitive;
+			this.ascending=ascending;
 		}
 
 		public int compare(T entry1, T entry2) {
-			if ((entry1 == null) && (entry2 == null)) {
-				return 0;
-			}
-			if ((entry1 == null) && (entry2 != null)) {
-				return -1;
-			} else if ((entry1 != null) && (entry2 == null)) {
-				return 1;
-			}
 
-			int result = 0;
-			for (String currSortByAttribute : sortByAttributes) {
-				result = compare(entry1, entry2, currSortByAttribute);
-				if (result != 0) {
-					break;
-				}
-			}
+		    int result=0;
+
+            if (entry1 == null){
+                if (entry2 == null)
+                    result=0;
+                else
+                    result=-1;
+            }
+            else{
+                if (entry2 == null)
+                    result=1;
+                else {
+                    for (String currSortByAttribute : sortByAttributes) {
+                        result = compare(entry1, entry2, currSortByAttribute);
+                        if (result != 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!ascending)
+                result*=-1;
 
 			return result;
+
 		}
 
+		//This comparison assumes a default sort order of ascending
 		public int compare(T entry1, T entry2, String attributeName) {
+
+		    int result=0;
 			Object value1 = ((SearchResultEntry) entry1).getAttribute(attributeName);
 			Object value2 = ((SearchResultEntry) entry2).getAttribute(attributeName);
 
-			if ((value1 == null) && (value2 == null)) {
-				return 0;
-			}
-			if ((value1 == null) && (value2 != null)) {
-				return -1;
-			} else if ((value1 != null) && (value2 == null)) {
-				return 1;
-			}
+            if (value1 == null){
+                if (value2 == null)
+                    result=0;
+                else
+                    result=-1;
+            }
+            else {
+                if (value2 == null)
+                    result=1;
+                else {
+                    //value1 and value2 are of type com.unboundid.ldap.sdk.Attribute, so this block has no effect!
+                    if (value1 instanceof Date) {
+                        result=((Date) value1).compareTo((Date) value2);
+                    } else if (value1 instanceof Integer) {
+                        result=((Integer) value1).compareTo((Integer) value2);
+                    } else if (value1 instanceof String && value2 instanceof String) {
+                        if (caseSensitive) {
+                            result=((String) value1).compareTo((String) value2);
+                        } else {
+                            result=((String) value1).toLowerCase().compareTo(((String) value2).toLowerCase());
+                        }
+                    }
+                }
+            }
+			return result;
 
-			if (value1 instanceof Date) {
-				return ((Date) value1).compareTo((Date) value2);
-			} else if (value1 instanceof Integer) {
-				return ((Integer) value1).compareTo((Integer) value2);
-			} else if (value1 instanceof String && value2 instanceof String) {
-				if (caseSensetive) {
-					return ((String) value1).compareTo((String) value2);
-				} else {
-					return ((String) value1).toLowerCase().compareTo(((String) value2).toLowerCase());
-				}
-			}
-            return 0;
 		}
+
 	}
 
 }

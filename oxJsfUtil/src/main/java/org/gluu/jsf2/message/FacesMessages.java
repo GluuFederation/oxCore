@@ -1,7 +1,7 @@
 package org.gluu.jsf2.message;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.el.ELContext;
@@ -23,61 +23,83 @@ import org.xdi.service.el.ExpressionEvaluator;
 @RequestScoped
 public class FacesMessages implements Serializable {
 
-	private static final long serialVersionUID = -6408439483194578659L;
+    private static final long serialVersionUID = -6408439483194578659L;
 
-	@Inject
-	private FacesContext facesContext;
+    @Inject
+    private FacesContext facesContext;
 
-	@Inject
-	private ExternalContext externalContext;
+    @Inject
+    private ExternalContext externalContext;
 
-	@Inject
-	private ExpressionEvaluator expressionEvaluator;
+    @Inject
+    private ExpressionEvaluator expressionEvaluator;
 
-	public void add(Severity severity, String message) {
-		String evaluatedMessage = evalAsString(message);
-		facesContext.addMessage(null, new FacesMessage(severity, evaluatedMessage, evaluatedMessage));
-		setKeepMessages();
-	}
+    public void add(Severity severity, String message) {
+        add(null, severity, message);
+    }
 
-	public void add(String clientId, Severity severity, String message) {
-		String evaluatedMessage = evalAsString(message);
-		facesContext.addMessage(clientId, new FacesMessage(severity, evaluatedMessage, evaluatedMessage));
-		setKeepMessages();
-	}
+    public void add(String clientId, Severity severity, String message) {
+        if (facesContext == null) {
+            return;
+        }
 
-	public void add(Severity severity, String message, Object ... params) {
-		String fomrattedMessage = String.format(message, params); 
+        String evaluatedMessage = evalAsString(message);
+        facesContext.addMessage(clientId, new FacesMessage(severity, evaluatedMessage, evaluatedMessage));
+        setKeepMessages();
+    }
 
-		add(severity, fomrattedMessage);
-		setKeepMessages();
-	}
+    public void add(Severity severity, String message, Object ... params) {
+        String fomrattedMessage = String.format(message, params);
 
-	public void setKeepMessages() {
-		externalContext.getFlash().setKeepMessages(true);
-	}
+        add(severity, fomrattedMessage);
+        setKeepMessages();
+    }
 
-	public String evalAsString(String expression) {
-		ExpressionFactory expressionFactory = facesContext.getApplication().getExpressionFactory();
-		ELContext elContext = facesContext.getELContext();
-		ValueExpression valueExpression = expressionFactory.createValueExpression(elContext, expression, String.class);
-		String result = (String) valueExpression.getValue(elContext);
+    public void setKeepMessages() {
+        if (externalContext == null) {
+            return;
+        }
 
-		return result;
-	}
+        externalContext.getFlash().setKeepMessages(true);
+    }
 
-	public String evalResourceAsString(String resource) {
-		// Get resource message
-		String resourceMessage = evalAsString(resource);
+    public void clear() {
+        if (facesContext == null) {
+            return;
+        }
 
-		// Evaluate resource message
-		String message = evalAsString(resourceMessage);
+        Iterator<FacesMessage> messages = facesContext.getMessages();
+        while(messages.hasNext()) {
+            messages.next();
+            messages.remove();
+        }
+    }
 
-		return message;
-	}
+    public String evalAsString(String expression) {
+        if (facesContext == null) {
+            return expression;
+        }
 
-	public String evalAsString(String expression, Map<String, Object> parameters) {
-		return expressionEvaluator.evaluateValueExpression(expression, String.class, parameters);
-	}
+        ExpressionFactory expressionFactory = facesContext.getApplication().getExpressionFactory();
+        ELContext elContext = facesContext.getELContext();
+        ValueExpression valueExpression = expressionFactory.createValueExpression(elContext, expression, String.class);
+        String result = (String) valueExpression.getValue(elContext);
+
+        return result;
+    }
+
+    public String evalResourceAsString(String resource) {
+        // Get resource message
+        String resourceMessage = evalAsString(resource);
+
+        // Evaluate resource message
+        String message = evalAsString(resourceMessage);
+
+        return message;
+    }
+
+    public String evalAsString(String expression, Map<String, Object> parameters) {
+        return expressionEvaluator.evaluateValueExpression(expression, String.class, parameters);
+    }
 
 }

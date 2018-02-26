@@ -22,7 +22,7 @@ public enum GluuAttributeDataType implements LdapEnum {
 	STRING("string", "Text"),
 	NUMERIC("numeric", "Numeric"),
 	BOOLEAN("boolean", "Boolean"),
-	PHOTO("photo", "Photo"),
+	BINARY("binary", "Binary"),
 	CERTIFICATE("certificate", "Certificate"),
 	DATE("generalizedTime", "Date");
 

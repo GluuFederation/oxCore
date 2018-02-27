@@ -7,25 +7,21 @@
 package org.gluu.site.ldap;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
+import com.unboundid.ldap.sdk.schema.AttributeTypeDefinition;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.site.ldap.exception.ConnectionException;
 import org.gluu.site.ldap.exception.DuplicateEntryException;
 import org.gluu.site.ldap.exception.InvalidSimplePageControlException;
 import org.gluu.site.ldap.persistence.BatchOperation;
-import org.gluu.site.ldap.persistence.exception.InvalidArgumentException;
 import org.gluu.site.ldap.persistence.exception.MappingException;
 import org.xdi.ldap.model.SearchScope;
 import org.xdi.ldap.model.SortOrder;
 import org.xdi.ldap.model.VirtualListViewResponse;
 import org.xdi.util.ArrayHelper;
+import org.xdi.util.Pair;
 import org.xdi.util.StringHelper;
 
 import com.unboundid.asn1.ASN1OctetString;
@@ -75,6 +71,26 @@ public class OperationsFacade {
 	private LDAPConnectionProvider connectionProvider;
 	private LDAPConnectionProvider bindConnectionProvider;
 
+	private static Map<String, Class<?>> attributeDataTypes=new HashMap<String, Class<?>>();
+	private static final Map<String, Class<?>> oidSyntaxClassMapping;
+
+	static {
+	    //Populates the mapping of syntaxes that will support comparison of attribute values. Only accounting for the most common and existing in Gluu Schema
+        oidSyntaxClassMapping=new HashMap<String, Class<?>>();
+        //See RFC4517, section 3.3
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.7", Boolean.class);
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.11", String.class);   //Country String
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.15", String.class);   //Directory String
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.12", String.class);   //DN
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.22", String.class);   //Facsimile
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.24", Date.class);     //Generalized Time
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.26", String.class);   //IA5 String (used in email)
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.27", Integer.class);
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.36", String.class);   //Numeric string
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.41", String.class);   //Postal address
+        oidSyntaxClassMapping.put("1.3.6.1.4.1.1466.115.121.1.50", String.class);   //Telephone number
+    }
+
 	@SuppressWarnings("unused")
 	private OperationsFacade() {
 	}
@@ -87,6 +103,7 @@ public class OperationsFacade {
 	public OperationsFacade(LDAPConnectionProvider connectionProvider, LDAPConnectionProvider bindConnectionProvider) {
 		this.connectionProvider = connectionProvider;
 		this.bindConnectionProvider = bindConnectionProvider;
+		populateAttributeDataTypesMapping(getSubschemaSubentry());
 	}
 
 	public LDAPConnectionProvider getConnectionProvider() {
@@ -383,7 +400,11 @@ public class OperationsFacade {
 		List<SearchResultEntry> resultSearchResultEntries = searchResult.getSearchEntries();
 		int totalResults = resultSearchResultEntries.size();
 
-		sortListByAttributes(resultSearchResultEntries, false, sortBy);
+		if (StringUtils.isNotEmpty(sortBy)) {
+            boolean ascending = sortOrder == null || sortOrder.equals(SortOrder.ASCENDING);
+
+            resultSearchResultEntries = sortListByAttributes(resultSearchResultEntries, SearchResultEntry.class, false, ascending, sortBy);
+        }
 
 		List<SearchResultEntry> searchResultEntryList = new ArrayList<SearchResultEntry>();
 
@@ -700,82 +721,181 @@ public class OperationsFacade {
 		return this.connectionProvider.getCertificateAttributeName(attributeName);
 	}
 
-	public <T> void sortListByAttributes(List<T> searchResultEntries, boolean caseSensetive, String... sortByAttributes) {
+	public <T> List<T> sortListByAttributes(List<T> searchResultEntries, Class<T> cls, boolean caseSensitive, boolean ascending, String... sortByAttributes) {
+
 		// Check input parameters
 		if (searchResultEntries == null) {
 			throw new MappingException("Entries list to sort is null");
 		}
 
-		if ((searchResultEntries == null) || (searchResultEntries.size() == 0)) {
-			return;
+		if (searchResultEntries.size() == 0) {
+			return searchResultEntries;
 		}
 
-		if ((sortByAttributes == null) || (sortByAttributes.length == 0)) {
-			throw new InvalidArgumentException("Invalid list of sortBy properties " + Arrays.toString(sortByAttributes));
-		}
+		SearchResultEntryComparator<T> comparator = new SearchResultEntryComparator<T>(sortByAttributes, caseSensitive, ascending);
 
-		SearchResultEntryComparator<T> comparator = new SearchResultEntryComparator<T>(sortByAttributes, caseSensetive);
-		Collections.sort(searchResultEntries, comparator);
+		//The following line does not work because of type erasure
+		//T array[]=(T[])searchResultEntries.toArray();
+
+        //Converting the list to an array gets rid of unmodifiable list problem, see issue #68
+        T dummyArr[]=(T[]) java.lang.reflect.Array.newInstance(cls, 0);
+        T array[]=searchResultEntries.toArray(dummyArr);
+		Arrays.sort(array, comparator);
+		return Arrays.asList(array);
+
 	}
+
+	private void populateAttributeDataTypesMapping(String schemaEntryDn) {
+
+        try {
+            if (attributeDataTypes.size()==0){
+                //schemaEntryDn="ou=schema";
+                SearchResultEntry entry = lookup(schemaEntryDn, "attributeTypes");
+                Attribute attrAttributeTypes = entry.getAttribute("attributeTypes");
+
+                Map<String, Pair<String, String>> tmpMap =new HashMap<String, Pair<String, String>>();
+
+                for (String strAttributeType : attrAttributeTypes.getValues()){
+                    AttributeTypeDefinition attrTypeDef=new AttributeTypeDefinition(strAttributeType);
+                    String names[]=attrTypeDef.getNames();
+
+                    if (names!=null){
+                        for (String name : names)
+                            tmpMap.put(name, new Pair<String, String>(attrTypeDef.getBaseSyntaxOID(), attrTypeDef.getSuperiorType()));
+                    }
+                }
+
+                //Fill missing values
+                for (String name : tmpMap.keySet()) {
+                    Pair<String, String> currPair=tmpMap.get(name);
+                    String sup=currPair.getSecond();
+
+                    if (currPair.getFirst()==null && sup!=null) {     //No OID syntax?
+                        //Try to lookup superior type
+                        Pair<String, String> pair = tmpMap.get(sup);
+                        if (pair != null)
+                            currPair.setFirst(pair.getFirst());
+                    }
+                }
+
+                //Populate map of attribute names vs. Java classes
+                for (String name : tmpMap.keySet()) {
+                    String syntaxOID=tmpMap.get(name).getFirst();
+
+                    if (syntaxOID!=null){
+                        Class<?> cls=oidSyntaxClassMapping.get(syntaxOID);
+                        if (cls!=null) {
+                            attributeDataTypes.put(name, cls);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception e){
+            log.error(e.getMessage(), e);
+        }
+
+    }
 
 	private static final class SearchResultEntryComparator<T> implements Comparator<T>, Serializable {
 
 		private static final long serialVersionUID = 574848841116711467L;
 		private String[] sortByAttributes;
-		private boolean caseSensetive;
+		private boolean caseSensitive;
+		private boolean ascending;
 
-		private SearchResultEntryComparator(String[] sortByAttributes, boolean caseSensetive) {
+		private SearchResultEntryComparator(String[] sortByAttributes, boolean caseSensitive, boolean ascending) {
 			this.sortByAttributes = sortByAttributes;
-			this.caseSensetive = caseSensetive;
+			this.caseSensitive = caseSensitive;
+			this.ascending=ascending;
 		}
 
 		public int compare(T entry1, T entry2) {
-			if ((entry1 == null) && (entry2 == null)) {
-				return 0;
-			}
-			if ((entry1 == null) && (entry2 != null)) {
-				return -1;
-			} else if ((entry1 != null) && (entry2 == null)) {
-				return 1;
-			}
 
-			int result = 0;
-			for (String currSortByAttribute : sortByAttributes) {
-				result = compare(entry1, entry2, currSortByAttribute);
-				if (result != 0) {
-					break;
-				}
-			}
+		    int result=0;
+
+            if (entry1 == null){
+                if (entry2 == null)
+                    result=0;
+                else
+                    result=-1;
+            }
+            else{
+                if (entry2 == null)
+                    result=1;
+                else {
+                    for (String currSortByAttribute : sortByAttributes) {
+                        result = compare(entry1, entry2, currSortByAttribute);
+                        if (result != 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!ascending)
+                result*=-1;
 
 			return result;
+
 		}
 
+		//This comparison assumes a default sort order of "ascending"
 		public int compare(T entry1, T entry2, String attributeName) {
-			Object value1 = ((SearchResultEntry) entry1).getAttribute(attributeName);
-			Object value2 = ((SearchResultEntry) entry2).getAttribute(attributeName);
 
-			if ((value1 == null) && (value2 == null)) {
-				return 0;
-			}
-			if ((value1 == null) && (value2 != null)) {
-				return -1;
-			} else if ((value1 != null) && (value2 == null)) {
-				return 1;
-			}
+            int result=0;
+            try{
 
-			if (value1 instanceof Date) {
-				return ((Date) value1).compareTo((Date) value2);
-			} else if (value1 instanceof Integer) {
-				return ((Integer) value1).compareTo((Integer) value2);
-			} else if (value1 instanceof String && value2 instanceof String) {
-				if (caseSensetive) {
-					return ((String) value1).compareTo((String) value2);
-				} else {
-					return ((String) value1).toLowerCase().compareTo(((String) value2).toLowerCase());
-				}
-			}
-            return 0;
+                if (entry1 instanceof SearchResultEntry){
+
+                    SearchResultEntry resultEntry1=(SearchResultEntry) entry1;
+                    SearchResultEntry resultEntry2=(SearchResultEntry) entry2;
+
+                    //Obtain a string representation first and do nulls treatments
+                    String value1 = resultEntry1.getAttributeValue(attributeName);
+                    String value2 = resultEntry2.getAttributeValue(attributeName);
+
+                    if (value1 == null){
+                        if (value2 == null)
+                            result=0;
+                        else
+                            result=-1;
+                    }
+                    else {
+                        if (value2 == null)
+                            result=1;
+                        else {
+                            Class<?> cls=attributeDataTypes.get(attributeName);
+
+                            if (cls!=null){
+                                if (cls.equals(String.class)){
+                                    if (caseSensitive)
+                                        result=value1.compareTo(value2);
+                                    else
+                                        result=value1.toLowerCase().compareTo(value2.toLowerCase());
+                                }
+                                else
+                                if (cls.equals(Integer.class))
+                                    result=resultEntry1.getAttributeValueAsInteger(attributeName).compareTo(resultEntry2.getAttributeValueAsInteger(attributeName));
+                                else
+                                if (cls.equals(Boolean.class))
+                                    result=resultEntry1.getAttributeValueAsBoolean(attributeName).compareTo(resultEntry2.getAttributeValueAsBoolean(attributeName));
+                                else
+                                if (cls.equals(Date.class))
+                                    result=resultEntry1.getAttributeValueAsDate(attributeName).compareTo(resultEntry2.getAttributeValueAsDate(attributeName));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e){
+                log.error("Error occurred when comparing entries with SearchResultEntryComparator");
+                log.error(e.getMessage(), e);
+            }
+			return result;
+
 		}
+
 	}
 
 }

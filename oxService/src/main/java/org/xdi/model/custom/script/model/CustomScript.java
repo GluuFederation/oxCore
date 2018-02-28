@@ -70,6 +70,10 @@ public class CustomScript extends BaseEntry {
     @LdapAttribute(name = "gluuStatus")
     private boolean enabled;
 
+    @LdapJsonObject
+    @LdapAttribute(name = "oxScriptError")
+    private ScriptError scriptError;
+
     @Transient
     private boolean modified;
 
@@ -280,5 +284,13 @@ public class CustomScript extends BaseEntry {
 			}
 		}
 	}
+
+    public final ScriptError getScriptError() {
+        return scriptError;
+    }
+
+    public final void setScriptError(ScriptError scriptError) {
+        this.scriptError = scriptError;
+    }
 
 }

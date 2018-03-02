@@ -59,233 +59,240 @@ import org.xdi.util.StringHelper;
 @ApplicationScoped
 public class CustomScriptManager implements Serializable {
 
-	private static final long serialVersionUID = -4225890597520443390L;
+    private static final long serialVersionUID = -4225890597520443390L;
 
-	public final static String CUSTOM_SCRIPT_MODIFIED_EVENT_TYPE = "customScriptModifiedEvent";
-    private final static int DEFAULT_INTERVAL = 30; // 30 seconds
-    
-    public final static String[] CUSTOM_SCRIPT_CHECK_ATTRIBUTES = { "dn", "inum", "oxRevision", "oxScriptType", "oxModuleProperty", "gluuStatus" };
+    public static final String CUSTOM_SCRIPT_MODIFIED_EVENT_TYPE = "customScriptModifiedEvent";
+    private static final int DEFAULT_INTERVAL = 30; // 30 seconds
 
-	@Inject
-	protected Logger log;
+    public static final String[] CUSTOM_SCRIPT_CHECK_ATTRIBUTES = { "dn", "inum", "oxRevision", "oxScriptType", "oxModuleProperty", "gluuStatus" };
 
-	@Inject
-	private Event<TimerEvent> timerEvent;
+    @Inject
+    protected Logger log;
 
-	@Inject
-	private PythonService pythonService;
-	
-	@Inject
-	protected AbstractCustomScriptService customScriptService;
+    @Inject
+    private Event<TimerEvent> timerEvent;
 
-	@Inject @ReloadScript
-	private Event<String> event;
+    @Inject
+    private PythonService pythonService;
 
-	protected List<CustomScriptType> supportedCustomScriptTypes;
-	private Map<String, CustomScriptConfiguration> customScriptConfigurations;
+    @Inject
+    protected AbstractCustomScriptService customScriptService;
 
-	private AtomicBoolean isActive;
-	private long lastFinishedTime;
+    @Inject
+    @ReloadScript
+    private Event<String> event;
 
-	private Map<CustomScriptType, List<CustomScriptConfiguration>> customScriptConfigurationsByScriptType;
+    protected List<CustomScriptType> supportedCustomScriptTypes;
+    private Map<String, CustomScriptConfiguration> customScriptConfigurations;
+
+    private AtomicBoolean isActive;
+    private long lastFinishedTime;
+
+    private Map<CustomScriptType, List<CustomScriptConfiguration>> customScriptConfigurationsByScriptType;
 
     @Asynchronous
     public void initTimer(List<CustomScriptType> supportedCustomScriptTypes) {
-		this.supportedCustomScriptTypes = supportedCustomScriptTypes;
+        this.supportedCustomScriptTypes = supportedCustomScriptTypes;
 
-		this.isActive = new AtomicBoolean(false);
-		this.lastFinishedTime = System.currentTimeMillis();
+        this.isActive = new AtomicBoolean(false);
+        this.lastFinishedTime = System.currentTimeMillis();
 
-		final int delay = 30;
-		final int interval = DEFAULT_INTERVAL;
+        final int delay = 30;
+        final int interval = DEFAULT_INTERVAL;
 
-		reload();
+        reload();
 
-		timerEvent.fire(new TimerEvent(new TimerSchedule(delay, interval), new UpdateScriptEvent(), Scheduled.Literal.INSTANCE));
+        timerEvent.fire(new TimerEvent(new TimerSchedule(delay, interval), new UpdateScriptEvent(), Scheduled.Literal.INSTANCE));
     }
 
-	public void reloadTimerEvent(@Observes @Scheduled UpdateScriptEvent updateScriptEvent) {
-		if (this.isActive.get()) {
-			return;
-		}
+    public void reloadTimerEvent(@Observes @Scheduled UpdateScriptEvent updateScriptEvent) {
+        if (this.isActive.get()) {
+            return;
+        }
 
-		if (!this.isActive.compareAndSet(false, true)) {
-			return;
-		}
+        if (!this.isActive.compareAndSet(false, true)) {
+            return;
+        }
 
-		try {
-			reload();
-		} catch (Throwable ex) {
-			log.error("Exception happened while reloading custom scripts configuration", ex);
-		} finally {
-			this.isActive.set(false);
-			this.lastFinishedTime = System.currentTimeMillis();
-			log.trace("Last finished time '{}'", new Date(this.lastFinishedTime));
-		}
-	}
+        try {
+            reload();
+        } catch (Throwable ex) {
+            log.error("Exception happened while reloading custom scripts configuration", ex);
+        } finally {
+            this.isActive.set(false);
+            this.lastFinishedTime = System.currentTimeMillis();
+            log.trace("Last finished time '{}'", new Date(this.lastFinishedTime));
+        }
+    }
 
-	public void destroy(@BeforeDestroyed(ApplicationScoped.class) ServletContext init) {
-		log.debug("Destroying custom scripts configurations");
-		if (this.customScriptConfigurations == null) {
-			return;
-		}
+    public void destroy(@BeforeDestroyed(ApplicationScoped.class) ServletContext init) {
+        log.debug("Destroying custom scripts configurations");
+        if (this.customScriptConfigurations == null) {
+            return;
+        }
 
-		// Destroy authentication methods
-		for (Entry<String, CustomScriptConfiguration> customScriptConfigurationEntry : this.customScriptConfigurations.entrySet()) {
-			destroyCustomScript(customScriptConfigurationEntry.getValue());
-		}
-	}
+        // Destroy authentication methods
+        for (Entry<String, CustomScriptConfiguration> customScriptConfigurationEntry : this.customScriptConfigurations.entrySet()) {
+            destroyCustomScript(customScriptConfigurationEntry.getValue());
+        }
+    }
 
-	private void reload() {
-		boolean modified = reloadImpl();
-		
-		if (modified) {
-			event.fire(CUSTOM_SCRIPT_MODIFIED_EVENT_TYPE);
-		}
-	}
+    private void reload() {
+        boolean modified = reloadImpl();
 
-	private boolean reloadImpl() {
-		// Load current script revisions
-		List<CustomScript> customScripts = customScriptService.findCustomScripts(supportedCustomScriptTypes, CUSTOM_SCRIPT_CHECK_ATTRIBUTES);
+        if (modified) {
+            event.fire(CUSTOM_SCRIPT_MODIFIED_EVENT_TYPE);
+        }
+    }
 
-		// Store updated external authenticator configurations
-		ReloadResult reloadResult = reloadCustomScriptConfigurations(this.customScriptConfigurations, customScripts);
-		this.customScriptConfigurations = reloadResult.getCustomScriptConfigurations();
+    private boolean reloadImpl() {
+        // Load current script revisions
+        List<CustomScript> customScripts = customScriptService.findCustomScripts(supportedCustomScriptTypes, CUSTOM_SCRIPT_CHECK_ATTRIBUTES);
 
-		// Group external authenticator configurations by usage type
-		this.customScriptConfigurationsByScriptType = groupCustomScriptConfigurationsByScriptType(this.customScriptConfigurations);
-		
-		return reloadResult.isModified();
-	}
+        // Store updated external authenticator configurations
+        ReloadResult reloadResult = reloadCustomScriptConfigurations(this.customScriptConfigurations, customScripts);
+        this.customScriptConfigurations = reloadResult.getCustomScriptConfigurations();
 
-	private class ReloadResult {
-		private Map<String, CustomScriptConfiguration> customScriptConfigurations;
-		private boolean modified;
+        // Group external authenticator configurations by usage type
+        this.customScriptConfigurationsByScriptType = groupCustomScriptConfigurationsByScriptType(this.customScriptConfigurations);
 
-		public ReloadResult(Map<String, CustomScriptConfiguration> customScriptConfigurations, boolean modified) {
-			this.customScriptConfigurations = customScriptConfigurations;
-			this.modified = modified;
-		}
+        return reloadResult.isModified();
+    }
 
-		public Map<String, CustomScriptConfiguration> getCustomScriptConfigurations() {
-			return customScriptConfigurations;
-		}
+    private class ReloadResult {
+        private Map<String, CustomScriptConfiguration> customScriptConfigurations;
+        private boolean modified;
 
-		public boolean isModified() {
-			return modified;
-		}
-	}
+        ReloadResult(Map<String, CustomScriptConfiguration> customScriptConfigurations, boolean modified) {
+            this.customScriptConfigurations = customScriptConfigurations;
+            this.modified = modified;
+        }
 
-	private ReloadResult reloadCustomScriptConfigurations(
-			Map<String,  CustomScriptConfiguration> customScriptConfigurations, List<CustomScript> newCustomScripts) {
-		Map<String, CustomScriptConfiguration> newCustomScriptConfigurations;
-		
-		boolean modified = false;
+        public Map<String, CustomScriptConfiguration> getCustomScriptConfigurations() {
+            return customScriptConfigurations;
+        }
 
-		if (customScriptConfigurations == null) {
-			newCustomScriptConfigurations = new HashMap<String, CustomScriptConfiguration>();
-			modified = true;
-		} else {
-			// Clone old map to avoid reload not changed scripts because it's time and CPU consuming process
-			newCustomScriptConfigurations = new HashMap<String, CustomScriptConfiguration>(customScriptConfigurations);
-		}
+        public boolean isModified() {
+            return modified;
+        }
+    }
 
-		List<String> newSupportedCustomScriptInums = new ArrayList<String>();
-		for (CustomScript newCustomScript : newCustomScripts) {
-	        if (!newCustomScript.isEnabled()) {
-	        	continue;
-	        }
-	        
-	        if (ScriptLocationType.FILE == newCustomScript.getLocationType()) {
-	        	// Replace script revision with file modification time. This should allow to reload script automatically after changing location_type
-	        	long fileModifiactionTime = getFileModificationTime(newCustomScript.getLocationPath());
-	        	
-	        	newCustomScript.setRevision(fileModifiactionTime);
-	        }
-	        	
-			String newSupportedCustomScriptInum = StringHelper.toLowerCase(newCustomScript.getInum());
-			newSupportedCustomScriptInums.add(newSupportedCustomScriptInum);
+    private ReloadResult reloadCustomScriptConfigurations(Map<String, CustomScriptConfiguration> customScriptConfigurations,
+            List<CustomScript> newCustomScripts) {
+        Map<String, CustomScriptConfiguration> newCustomScriptConfigurations;
 
-			CustomScriptConfiguration prevCustomScriptConfiguration = newCustomScriptConfigurations.get(newSupportedCustomScriptInum);
-			if ((prevCustomScriptConfiguration == null) || (prevCustomScriptConfiguration.getCustomScript().getRevision() != newCustomScript.getRevision())) {
-				// Destroy old version properly before creating new one
-				if (prevCustomScriptConfiguration != null) {
-					destroyCustomScript(prevCustomScriptConfiguration);
-				}
-				
-				// Load script entry with all attributes
-				CustomScript loadedCustomScript = customScriptService.getCustomScriptByDn(newCustomScript.getScriptType().getCustomScriptModel(), newCustomScript.getDn());
+        boolean modified = false;
 
-				// Prepare configuration attributes
-				Map<String, SimpleCustomProperty> newConfigurationAttributes = new HashMap<String, SimpleCustomProperty>();
+        if (customScriptConfigurations == null) {
+            newCustomScriptConfigurations = new HashMap<String, CustomScriptConfiguration>();
+            modified = true;
+        } else {
+            // Clone old map to avoid reload not changed scripts because it's time and CPU
+            // consuming process
+            newCustomScriptConfigurations = new HashMap<String, CustomScriptConfiguration>(customScriptConfigurations);
+        }
 
-				List<SimpleExtendedCustomProperty> simpleCustomProperties = loadedCustomScript.getConfigurationProperties();
-				if (simpleCustomProperties == null) {
-					simpleCustomProperties = new ArrayList<SimpleExtendedCustomProperty>(0);
-					
-				}
+        List<String> newSupportedCustomScriptInums = new ArrayList<String>();
+        for (CustomScript newCustomScript : newCustomScripts) {
+            if (!newCustomScript.isEnabled()) {
+                continue;
+            }
 
-				for (SimpleCustomProperty simpleCustomProperty : simpleCustomProperties) {
-					newConfigurationAttributes.put(simpleCustomProperty.getValue1(), simpleCustomProperty);
-				}
+            if (ScriptLocationType.FILE == newCustomScript.getLocationType()) {
+                // Replace script revision with file modification time. This should allow to
+                // reload script automatically after changing location_type
+                long fileModifiactionTime = getFileModificationTime(newCustomScript.getLocationPath());
 
-				if (ScriptLocationType.FILE == loadedCustomScript.getLocationType()) {
-		        	// Replace script revision with file modification time. This should allow to reload script automatically after changing location_type
-		        	long fileModifiactionTime = getFileModificationTime(loadedCustomScript.getLocationPath());
-		        	loadedCustomScript.setRevision(fileModifiactionTime);
+                newCustomScript.setRevision(fileModifiactionTime);
+            }
 
-		        	if (fileModifiactionTime != 0) {
-			        	String scriptFromFile = loadFromFile(loadedCustomScript.getLocationPath());
-			        	if (StringHelper.isNotEmpty(scriptFromFile)) {
-			        		loadedCustomScript.setScript(scriptFromFile);
-			        	}
-			        	
-		        	}
-		        }
+            String newSupportedCustomScriptInum = StringHelper.toLowerCase(newCustomScript.getInum());
+            newSupportedCustomScriptInums.add(newSupportedCustomScriptInum);
 
-				// Load script
-	        	BaseExternalType newCustomScriptExternalType = createExternalType(loadedCustomScript, newConfigurationAttributes);
+            CustomScriptConfiguration prevCustomScriptConfiguration = newCustomScriptConfigurations.get(newSupportedCustomScriptInum);
+            if ((prevCustomScriptConfiguration == null)
+                    || (prevCustomScriptConfiguration.getCustomScript().getRevision() != newCustomScript.getRevision())) {
+                // Destroy old version properly before creating new one
+                if (prevCustomScriptConfiguration != null) {
+                    destroyCustomScript(prevCustomScriptConfiguration);
+                }
 
-	        	CustomScriptConfiguration newCustomScriptConfiguration = new CustomScriptConfiguration(loadedCustomScript, newCustomScriptExternalType, newConfigurationAttributes);
+                // Load script entry with all attributes
+                CustomScript loadedCustomScript = customScriptService.getCustomScriptByDn(newCustomScript.getScriptType().getCustomScriptModel(),
+                        newCustomScript.getDn());
 
-				// Store configuration and script
-				newCustomScriptConfigurations.put(newSupportedCustomScriptInum, newCustomScriptConfiguration);
+                // Prepare configuration attributes
+                Map<String, SimpleCustomProperty> newConfigurationAttributes = new HashMap<String, SimpleCustomProperty>();
 
-				modified = true;
-			}
-		}
+                List<SimpleExtendedCustomProperty> simpleCustomProperties = loadedCustomScript.getConfigurationProperties();
+                if (simpleCustomProperties == null) {
+                    simpleCustomProperties = new ArrayList<SimpleExtendedCustomProperty>(0);
 
-		// Remove old external script configurations
-		for (Iterator<Entry<String, CustomScriptConfiguration>> it = newCustomScriptConfigurations.entrySet().iterator(); it.hasNext();) {
-			Entry<String, CustomScriptConfiguration> externalAuthenticatorConfigurationEntry = it.next();
+                }
 
-			String prevSupportedCustomScriptInum = externalAuthenticatorConfigurationEntry.getKey();
+                for (SimpleCustomProperty simpleCustomProperty : simpleCustomProperties) {
+                    newConfigurationAttributes.put(simpleCustomProperty.getValue1(), simpleCustomProperty);
+                }
 
-			if (!newSupportedCustomScriptInums.contains(prevSupportedCustomScriptInum)) {
-				// Destroy old authentication method
-				destroyCustomScript(externalAuthenticatorConfigurationEntry.getValue());
-				it.remove();
+                if (ScriptLocationType.FILE == loadedCustomScript.getLocationType()) {
+                    // Replace script revision with file modification time. This should allow to
+                    // reload script automatically after changing location_type
+                    long fileModifiactionTime = getFileModificationTime(loadedCustomScript.getLocationPath());
+                    loadedCustomScript.setRevision(fileModifiactionTime);
 
-				modified = true;
-			}
-		}
+                    if (fileModifiactionTime != 0) {
+                        String scriptFromFile = loadFromFile(loadedCustomScript.getLocationPath());
+                        if (StringHelper.isNotEmpty(scriptFromFile)) {
+                            loadedCustomScript.setScript(scriptFromFile);
+                        }
 
-		return new ReloadResult(newCustomScriptConfigurations, modified);
-	}
+                    }
+                }
 
-	private String loadFromFile(String locationPath) {
-		try {
-			String scriptFromFile = FileUtils.readFileToString(new File(locationPath));
-			
-			return scriptFromFile;
-		} catch (IOException ex) {
-			log.error("Faield to load script from '{}'", locationPath);
-		}
+                // Load script
+                BaseExternalType newCustomScriptExternalType = createExternalType(loadedCustomScript, newConfigurationAttributes);
 
-		return null;
-	}
+                CustomScriptConfiguration newCustomScriptConfiguration = new CustomScriptConfiguration(loadedCustomScript,
+                        newCustomScriptExternalType, newConfigurationAttributes);
 
-	private long getFileModificationTime(String locationPath) {
+                // Store configuration and script
+                newCustomScriptConfigurations.put(newSupportedCustomScriptInum, newCustomScriptConfiguration);
+
+                modified = true;
+            }
+        }
+
+        // Remove old external scripts configurations
+        for (Iterator<Entry<String, CustomScriptConfiguration>> it = newCustomScriptConfigurations.entrySet().iterator(); it.hasNext();) {
+            Entry<String, CustomScriptConfiguration> externalAuthenticatorConfigurationEntry = it.next();
+
+            String prevSupportedCustomScriptInum = externalAuthenticatorConfigurationEntry.getKey();
+
+            if (!newSupportedCustomScriptInums.contains(prevSupportedCustomScriptInum)) {
+                // Destroy old authentication method
+                destroyCustomScript(externalAuthenticatorConfigurationEntry.getValue());
+                it.remove();
+
+                modified = true;
+            }
+        }
+
+        return new ReloadResult(newCustomScriptConfigurations, modified);
+    }
+
+    private String loadFromFile(String locationPath) {
+        try {
+            String scriptFromFile = FileUtils.readFileToString(new File(locationPath));
+
+            return scriptFromFile;
+        } catch (IOException ex) {
+            log.error("Faield to load script from '{}'", locationPath);
+        }
+
+        return null;
+    }
+
+    private long getFileModificationTime(String locationPath) {
         File scriptFile = new File(locationPath);
 
         if (scriptFile.exists()) {
@@ -293,176 +300,182 @@ public class CustomScriptManager implements Serializable {
         }
 
         return 0;
-	}
+    }
 
-	private boolean destroyCustomScript(CustomScriptConfiguration customScriptConfiguration) {
-		String customScriptInum = customScriptConfiguration.getInum();
+    private boolean destroyCustomScript(CustomScriptConfiguration customScriptConfiguration) {
+        String customScriptInum = customScriptConfiguration.getInum();
 
-		boolean result = executeCustomScriptDestroy(customScriptConfiguration);
-		if (!result) {
-			log.error("Failed to destroy custom script '{}' correctly", customScriptInum);
-		}
-		
-		return result;
-	}
+        boolean result = executeCustomScriptDestroy(customScriptConfiguration);
+        if (!result) {
+            log.error("Failed to destroy custom script '{}' correctly", customScriptInum);
+        }
 
-	private Map<CustomScriptType, List<CustomScriptConfiguration>> groupCustomScriptConfigurationsByScriptType(Map<String, CustomScriptConfiguration> customScriptConfigurations) {
-		Map<CustomScriptType, List<CustomScriptConfiguration>> newCustomScriptConfigurationsByScriptType = new HashMap<CustomScriptType, List<CustomScriptConfiguration>>();
-		
-		for (CustomScriptType customScriptType : this.supportedCustomScriptTypes) {
-			List<CustomScriptConfiguration> customConfigurationsByScriptType = new ArrayList<CustomScriptConfiguration>();
-			newCustomScriptConfigurationsByScriptType.put(customScriptType, customConfigurationsByScriptType);
-		}
+        return result;
+    }
 
-		for (CustomScriptConfiguration customScriptConfiguration : customScriptConfigurations.values()) {
-			CustomScriptType customScriptType = customScriptConfiguration.getCustomScript().getScriptType();
-			List<CustomScriptConfiguration> customConfigurationsByScriptType = newCustomScriptConfigurationsByScriptType.get(customScriptType);
-			customConfigurationsByScriptType.add(customScriptConfiguration);
-		}
-		
-		return newCustomScriptConfigurationsByScriptType;
-	}
+    private Map<CustomScriptType, List<CustomScriptConfiguration>> groupCustomScriptConfigurationsByScriptType(
+            Map<String, CustomScriptConfiguration> customScriptConfigurations) {
+        Map<CustomScriptType, List<CustomScriptConfiguration>> newCustomScriptConfigurationsByScriptType = new HashMap<CustomScriptType, List<CustomScriptConfiguration>>();
 
-	private BaseExternalType createExternalType(CustomScript customScript, Map<String, SimpleCustomProperty> configurationAttributes) {
-		String customScriptInum = customScript.getInum();
+        for (CustomScriptType customScriptType : this.supportedCustomScriptTypes) {
+            List<CustomScriptConfiguration> customConfigurationsByScriptType = new ArrayList<CustomScriptConfiguration>();
+            newCustomScriptConfigurationsByScriptType.put(customScriptType, customConfigurationsByScriptType);
+        }
 
-		BaseExternalType externalType;
-		try {
-			externalType = createExternalTypeFromStringWithPythonException(customScript, configurationAttributes);
-		} catch (PythonException ex) {
-			log.error("Failed to prepare external type '{}'", ex, customScriptInum);
-			saveScriptError(customScript, ex);
-			return null;
-		}
+        for (CustomScriptConfiguration customScriptConfiguration : customScriptConfigurations.values()) {
+            CustomScriptType customScriptType = customScriptConfiguration.getCustomScript().getScriptType();
+            List<CustomScriptConfiguration> customConfigurationsByScriptType = newCustomScriptConfigurationsByScriptType.get(customScriptType);
+            customConfigurationsByScriptType.add(customScriptConfiguration);
+        }
 
-		if (externalType == null) {
-			log.debug("Using default external type class");
-			saveScriptError(customScript, new Exception("Using default external type class"));
-			externalType = customScript.getScriptType().getDefaultImplementation();
-		} else {
-			clearScriptError(customScript);
-		}
+        return newCustomScriptConfigurationsByScriptType;
+    }
 
-		return externalType;
-	}
+    private BaseExternalType createExternalType(CustomScript customScript, Map<String, SimpleCustomProperty> configurationAttributes) {
+        String customScriptInum = customScript.getInum();
 
-	public BaseExternalType createExternalTypeFromStringWithPythonException(CustomScript customScript, Map<String, SimpleCustomProperty> configurationAttributes) throws PythonException {
-		String script = customScript.getScript();
-		if (script == null) {
-			return null;
-		}
+        BaseExternalType externalType;
+        try {
+            externalType = createExternalTypeFromStringWithPythonException(customScript, configurationAttributes);
+        } catch (PythonException ex) {
+            log.error("Failed to prepare external type '{}'", ex, customScriptInum);
+            saveScriptError(customScript, ex, true);
+            return null;
+        }
 
-		CustomScriptType customScriptType = customScript.getScriptType();
-		BaseExternalType externalType = null;
+        if (externalType == null) {
+            log.debug("Using default external type class");
+            saveScriptError(customScript, new Exception("Using default external type class"), true);
+            externalType = customScript.getScriptType().getDefaultImplementation();
+        } else {
+            clearScriptError(customScript);
+        }
 
-		InputStream bis = null;
-		try {
+        return externalType;
+    }
+
+    public BaseExternalType createExternalTypeFromStringWithPythonException(CustomScript customScript,
+            Map<String, SimpleCustomProperty> configurationAttributes) throws PythonException {
+        String script = customScript.getScript();
+        if (script == null) {
+            return null;
+        }
+
+        CustomScriptType customScriptType = customScript.getScriptType();
+        BaseExternalType externalType = null;
+
+        InputStream bis = null;
+        try {
             bis = new ByteArrayInputStream(script.getBytes("UTF-8"));
-            externalType = pythonService.loadPythonScript(bis, customScriptType.getPythonClass(),
-            		customScriptType.getCustomScriptType(), new PyObject[] { new PyLong(System.currentTimeMillis()) });
-		} catch (UnsupportedEncodingException e) {
+            externalType = pythonService.loadPythonScript(bis, customScriptType.getPythonClass(), customScriptType.getCustomScriptType(),
+                    new PyObject[] { new PyLong(System.currentTimeMillis()) });
+        } catch (UnsupportedEncodingException e) {
             log.error(e.getMessage(), e);
         } finally {
-			IOUtils.closeQuietly(bis);
-		}
+            IOUtils.closeQuietly(bis);
+        }
 
-		if (externalType == null) {
-			return null;
-		}
+        if (externalType == null) {
+            return null;
+        }
 
-		boolean initialized = false;
-		try {
-			initialized = externalType.init(configurationAttributes);
-		} catch (Exception ex) {
+        boolean initialized = false;
+        try {
+            initialized = externalType.init(configurationAttributes);
+        } catch (Exception ex) {
             log.error("Failed to initialize custom script: '{}'", ex, customScript.getName());
-		}
+        }
 
-		if (initialized) {
-			return externalType;
-		}
-		
-		return null;
-	}
+        if (initialized) {
+            return externalType;
+        }
 
-	public boolean executeCustomScriptDestroy(CustomScriptConfiguration customScriptConfiguration) {
-		try {
-			log.debug("Executing python 'destroy' custom script method");
-			BaseExternalType externalType = customScriptConfiguration.getExternalType();
-			Map<String, SimpleCustomProperty> configurationAttributes = customScriptConfiguration.getConfigurationAttributes();
-			return externalType.destroy(configurationAttributes);
-		} catch (Exception ex) {
-			log.error(ex.getMessage(), ex);
-			saveScriptError(customScriptConfiguration.getCustomScript(), ex);
-		}
+        return null;
+    }
 
-		return false;
-	}
+    public boolean executeCustomScriptDestroy(CustomScriptConfiguration customScriptConfiguration) {
+        try {
+            log.debug("Executing python 'destroy' custom script method");
+            BaseExternalType externalType = customScriptConfiguration.getExternalType();
+            Map<String, SimpleCustomProperty> configurationAttributes = customScriptConfiguration.getConfigurationAttributes();
+            return externalType.destroy(configurationAttributes);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            saveScriptError(customScriptConfiguration.getCustomScript(), ex);
+        }
 
-	public void saveScriptError(CustomScript customScript, Exception exception) {
-		try {
-			saveScriptErrorImpl(customScript, exception);
-		} catch (Exception ex) {
-			log.error("Failed to store script '{}' error", customScript.getInum(), ex);
-		}
-	}
+        return false;
+    }
 
-	protected void saveScriptErrorImpl(CustomScript customScript, Exception exception) {
-		// Load entry from DN
-		String customScriptDn = customScript.getDn();
-		Class<? extends CustomScript> scriptType = customScript.getScriptType().getCustomScriptModel();
-		CustomScript loadedCustomScript = customScriptService.getCustomScriptByDn(scriptType, customScriptDn);
+    public void saveScriptError(CustomScript customScript, Exception exception) {
+        saveScriptError(customScript, exception, false);
+    }
 
-		// Check if there is error value already
-		ScriptError currError = loadedCustomScript.getScriptError();
-		if (currError != null) {
-			return;
-		}
+    public void saveScriptError(CustomScript customScript, Exception exception, boolean overwrite) {
+        try {
+            saveScriptErrorImpl(customScript, exception, overwrite);
+        } catch (Exception ex) {
+            log.error("Failed to store script '{}' error", customScript.getInum(), ex);
+        }
+    }
 
-		// Save error into script entry
-		String error = ExceptionUtils.getStackTrace(exception);
-		loadedCustomScript.setScriptError(new ScriptError(new Date(), error));
-		customScriptService.update(loadedCustomScript);
-	}
+    protected void saveScriptErrorImpl(CustomScript customScript, Exception exception, boolean overwrite) {
+        // Load entry from DN
+        String customScriptDn = customScript.getDn();
+        Class<? extends CustomScript> scriptType = customScript.getScriptType().getCustomScriptModel();
+        CustomScript loadedCustomScript = customScriptService.getCustomScriptByDn(scriptType, customScriptDn);
 
-	public void clearScriptError(CustomScript customScript) {
-		try {
-			clearScriptErrorImpl(customScript);
-		} catch (Exception ex) {
-			log.error("Failed to clear script '{}' error", customScript.getInum(), ex);
-		}
-	}
+        // Check if there is error value already
+        ScriptError currError = loadedCustomScript.getScriptError();
+        if (!overwrite && (currError != null)) {
+            return;
+        }
 
-	protected void clearScriptErrorImpl(CustomScript customScript) {
-		// Load entry from DN
-		String customScriptDn = customScript.getDn();
-		Class<? extends CustomScript> scriptType = customScript.getScriptType().getCustomScriptModel();
-		CustomScript loadedCustomScript = customScriptService.getCustomScriptByDn(scriptType, customScriptDn);
-		
-		// Check if there is no error
-		ScriptError currError = loadedCustomScript.getScriptError();
-		if (currError == null) {
-			return;
-		}
+        // Save error into script entry
+        String error = ExceptionUtils.getStackTrace(exception);
+        loadedCustomScript.setScriptError(new ScriptError(new Date(), error));
+        customScriptService.update(loadedCustomScript);
+    }
 
-		// Save error into script entry
-		loadedCustomScript.setScriptError(null);
-		customScriptService.update(loadedCustomScript);
-	}
+    public void clearScriptError(CustomScript customScript) {
+        try {
+            clearScriptErrorImpl(customScript);
+        } catch (Exception ex) {
+            log.error("Failed to clear script '{}' error", customScript.getInum(), ex);
+        }
+    }
 
-	public CustomScriptConfiguration getCustomScriptConfigurationByInum(String inum) {
-		return this.customScriptConfigurations.get(inum);
-	}
+    protected void clearScriptErrorImpl(CustomScript customScript) {
+        // Load entry from DN
+        String customScriptDn = customScript.getDn();
+        Class<? extends CustomScript> scriptType = customScript.getScriptType().getCustomScriptModel();
+        CustomScript loadedCustomScript = customScriptService.getCustomScriptByDn(scriptType, customScriptDn);
 
-	public List<CustomScriptConfiguration> getCustomScriptConfigurationsByScriptType(CustomScriptType customScriptType) {
-		return new ArrayList<CustomScriptConfiguration>(this.customScriptConfigurationsByScriptType.get(customScriptType));
-	}
+        // Check if there is no error
+        ScriptError currError = loadedCustomScript.getScriptError();
+        if (currError == null) {
+            return;
+        }
 
-	public List<CustomScriptConfiguration> getCustomScriptConfigurations() {
-		return new ArrayList<CustomScriptConfiguration>(this.customScriptConfigurations.values());
-	}
+        // Save error into script entry
+        loadedCustomScript.setScriptError(null);
+        customScriptService.update(loadedCustomScript);
+    }
 
-	public List<CustomScriptType> getSupportedCustomScriptTypes() {
-		return supportedCustomScriptTypes;
-	}
+    public CustomScriptConfiguration getCustomScriptConfigurationByInum(String inum) {
+        return this.customScriptConfigurations.get(inum);
+    }
+
+    public List<CustomScriptConfiguration> getCustomScriptConfigurationsByScriptType(CustomScriptType customScriptType) {
+        return new ArrayList<CustomScriptConfiguration>(this.customScriptConfigurationsByScriptType.get(customScriptType));
+    }
+
+    public List<CustomScriptConfiguration> getCustomScriptConfigurations() {
+        return new ArrayList<CustomScriptConfiguration>(this.customScriptConfigurations.values());
+    }
+
+    public List<CustomScriptType> getSupportedCustomScriptTypes() {
+        return supportedCustomScriptTypes;
+    }
 
 }

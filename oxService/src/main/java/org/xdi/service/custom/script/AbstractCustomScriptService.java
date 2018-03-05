@@ -10,11 +10,12 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.gluu.persist.ldap.impl.LdapEntryManager;
-import org.gluu.search.filter.Filter;
+import org.gluu.site.ldap.persistence.LdapEntryManager;
 import org.slf4j.Logger;
 import org.xdi.model.custom.script.CustomScriptType;
 import org.xdi.model.custom.script.model.CustomScript;
+
+import com.unboundid.ldap.sdk.Filter;
 
 /**
  * Operations with custom scripts
@@ -54,7 +55,7 @@ public abstract class AbstractCustomScriptService implements Serializable {
     public List<CustomScript> findAllCustomScripts(String[] returnAttributes) {
         String baseDn = baseDn();
 
-        List<CustomScript> result = ldapEntryManager.findEntries(baseDn, CustomScript.class, null, returnAttributes);
+        List<CustomScript> result = ldapEntryManager.findEntries(baseDn, CustomScript.class, returnAttributes, null);
 
         return result;
     }
@@ -74,7 +75,7 @@ public abstract class AbstractCustomScriptService implements Serializable {
 
         Filter filter = Filter.createORFilter(customScriptTypeFilters);
 
-        List<CustomScript> result = ldapEntryManager.findEntries(baseDn, CustomScript.class, filter, returnAttributes);
+        List<CustomScript> result = ldapEntryManager.findEntries(baseDn, CustomScript.class, returnAttributes, filter);
 
         return result;
     }

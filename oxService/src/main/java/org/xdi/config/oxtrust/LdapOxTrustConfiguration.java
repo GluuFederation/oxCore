@@ -37,9 +37,9 @@ public class LdapOxTrustConfiguration extends Entry {
     @LdapAttribute(name = "oxRevision")
     private long revision;
     
-    @LdapJsonObject //issue 102 - begin  : changed by shekhar
+    @LdapJsonObject
     @LdapAttribute(name = "oxTrustConfImportPerson")
-    private ImportPersonConfig importPersonConfig; //issue 102 - end  : changed by shekhar
+    private ImportPersonConfig importPersonConfig;
     
 	@LdapJsonObject
     @LdapAttribute(name = "oxTrustConfAttributeResolver")

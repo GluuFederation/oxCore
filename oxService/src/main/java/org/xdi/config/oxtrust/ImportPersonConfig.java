@@ -9,10 +9,8 @@ import java.util.List;
 /**
  * oxTrust configuration
  * 
- * @author shekhar laad
- * @date 12/10/2015
+ * @author Yuriy Movchan Date: 09/04/2017
  */
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Vetoed
 public class ImportPersonConfig implements Configuration, Serializable {

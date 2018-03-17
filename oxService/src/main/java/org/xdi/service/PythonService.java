@@ -139,14 +139,14 @@ public class PythonService implements Serializable {
         return loadPythonScript(scriptPythonType, scriptJavaType, constructorArgs, currentPythonInterpreter);
 	}
 
-	public <T> T loadPythonScript(InputStream scriptFile, String scriptPythonType, Class<T> scriptJavaType, PyObject[] constructorArgs) throws PythonException {
+	public <T> T loadPythonScript(InputStream scriptFile, String scriptName, String scriptPythonType, Class<T> scriptJavaType, PyObject[] constructorArgs) throws PythonException {
 		if (!interpereterReady || (scriptFile == null)) {
 			return null;
 		}
 
     	PythonInterpreter currentPythonInterpreter = PythonInterpreter.threadLocalStateInterpreter(null);
         try {
-        	currentPythonInterpreter.execfile(scriptFile);
+        	currentPythonInterpreter.execfile(scriptFile, scriptName);
 		} catch (Exception ex) {
 			log.error("Failed to load python file", ex.getMessage(), ex);
 			throw new PythonException(String.format("Failed to load python file '%s'", scriptFile), ex);

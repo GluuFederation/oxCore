@@ -17,7 +17,7 @@ import java.util.*;
  *
  * @author Yuriy Movchan
  * @author Javier Rojas Blum
- * @version June 27, 2017
+ * @version March 17, 2018
  */
 public abstract class AbstractCorsFilter implements Filter {
 
@@ -31,7 +31,7 @@ public abstract class AbstractCorsFilter implements Filter {
      * A {@link Collection} of origins consisting of zero or more origins that
      * are allowed access to the resource.
      */
-    private final Collection<String> allowedOrigins;
+    private Collection<String> allowedOrigins;
 
     /**
      * Determines if any origin is allowed to make request.
@@ -760,6 +760,14 @@ public abstract class AbstractCorsFilter implements Filter {
         return allowedOrigins;
     }
 
+    /**
+     * Sets the {@link Set} of allowed origins that are allowed to make requests.
+     *
+     * @param allowedOrigins {@link Set}
+     */
+    public void setAllowedOrigins(Collection<String> allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
+    }
 
     /**
      * Returns a {@link Set} of HTTP methods that are allowed to make requests.

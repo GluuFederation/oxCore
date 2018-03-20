@@ -17,7 +17,7 @@ import java.util.*;
  *
  * @author Yuriy Movchan
  * @author Javier Rojas Blum
- * @version March 17, 2018
+ * @version March 19, 2018
  */
 public abstract class AbstractCorsFilter implements Filter {
 
@@ -712,7 +712,7 @@ public abstract class AbstractCorsFilter implements Filter {
      * @return <code>true</code> if it's enabled; false otherwise.
      */
     public boolean isAnyOriginAllowed() {
-        if (allowedOrigins != null && allowedOrigins.size() == 1) {
+        if (allowedOrigins != null && allowedOrigins.size() == 0) {
             if (allowedOrigins.contains("*")) {
                 return true;
             }

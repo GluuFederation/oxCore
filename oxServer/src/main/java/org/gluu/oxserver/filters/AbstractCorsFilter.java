@@ -713,9 +713,7 @@ public abstract class AbstractCorsFilter implements Filter {
      */
     public boolean isAnyOriginAllowed() {
         if (allowedOrigins != null && allowedOrigins.size() == 0) {
-            if (allowedOrigins.contains("*")) {
-                return true;
-            }
+            return true;
         }
 
         return false;

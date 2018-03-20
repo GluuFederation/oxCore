@@ -34,11 +34,6 @@ public abstract class AbstractCorsFilter implements Filter {
     private Collection<String> allowedOrigins;
 
     /**
-     * Determines if any origin is allowed to make request.
-     */
-    private boolean anyOriginAllowed;
-
-    /**
      * A {@link Collection} of methods consisting of zero or more methods that
      * are supported by the resource.
      */
@@ -171,7 +166,7 @@ public abstract class AbstractCorsFilter implements Filter {
 
         // Section 6.1.3
         // Add a single Access-Control-Allow-Origin header.
-        if (anyOriginAllowed && !supportsCredentials) {
+        if (isAnyOriginAllowed() && !supportsCredentials) {
             // If resource doesn't support credentials and if any origin is
             // allowed
             // to make CORS request, return header with '*'.
@@ -291,7 +286,7 @@ public abstract class AbstractCorsFilter implements Filter {
                     AbstractCorsFilter.RESPONSE_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS,
                     "true");
         } else {
-            if (anyOriginAllowed) {
+            if (isAnyOriginAllowed()) {
                 response.addHeader(
                         AbstractCorsFilter.RESPONSE_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
                         "*");
@@ -568,7 +563,7 @@ public abstract class AbstractCorsFilter implements Filter {
      * otherwise.
      */
     private boolean isOriginAllowed(final String origin) {
-        if (anyOriginAllowed) {
+        if (isAnyOriginAllowed()) {
             return true;
         }
 
@@ -598,10 +593,7 @@ public abstract class AbstractCorsFilter implements Filter {
                                  final String preflightMaxAge, final String decorateRequest)
             throws ServletException {
         if (allowedOrigins != null) {
-            if (allowedOrigins.trim().equals("*")) {
-                this.anyOriginAllowed = true;
-            } else {
-                this.anyOriginAllowed = false;
+            if (!allowedOrigins.trim().equals("*")) {
                 Set<String> setAllowedOrigins =
                         parseStringToSet(allowedOrigins);
                 this.allowedOrigins.clear();
@@ -720,7 +712,13 @@ public abstract class AbstractCorsFilter implements Filter {
      * @return <code>true</code> if it's enabled; false otherwise.
      */
     public boolean isAnyOriginAllowed() {
-        return anyOriginAllowed;
+        if (allowedOrigins != null && allowedOrigins.size() == 1) {
+            if (allowedOrigins.contains("*")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 

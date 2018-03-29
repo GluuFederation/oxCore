@@ -6,6 +6,7 @@
 
 package org.xdi.model.custom.script.type.scope;
 
+import java.util.List;
 import java.util.Map;
 
 import org.xdi.model.SimpleCustomProperty;
@@ -18,6 +19,8 @@ import org.xdi.model.custom.script.type.BaseExternalType;
  */
 public interface DynamicScopeType extends BaseExternalType {
 
-	public boolean update(Object dynamicScopeContext, Map<String, SimpleCustomProperty> configurationAttributes);
+	boolean update(Object dynamicScopeContext, Map<String, SimpleCustomProperty> configurationAttributes);
+
+	List<String> getSupportedClaims(Map<String, SimpleCustomProperty> configurationAttributes);
 
 }

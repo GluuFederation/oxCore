@@ -14,7 +14,6 @@ import java.util.Map;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xdi.model.custom.script.CustomScriptType;
 import org.xdi.model.custom.script.conf.CustomScriptConfiguration;
@@ -91,6 +90,19 @@ public class ExternalScriptService implements Serializable {
 		
 		return defaultExternalCustomScript;
 	}
+
+    public int executeExternalGetApiVersion(CustomScriptConfiguration customScriptConfiguration) {
+        try {
+            log.debug("Executing python 'getApiVersion' authenticator method");
+            BaseExternalType externalAuthenticator = (BaseExternalType) customScriptConfiguration.getExternalType();
+            return externalAuthenticator.getApiVersion();
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            saveScriptError(customScriptConfiguration.getCustomScript(), ex);
+        }
+
+        return -1;
+    }
 
 	public void saveScriptError(CustomScript customScript, Exception exception) {
 		customScriptManager.saveScriptError(customScript, exception);

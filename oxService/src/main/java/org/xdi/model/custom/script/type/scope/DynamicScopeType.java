@@ -23,6 +23,4 @@ public interface DynamicScopeType extends BaseExternalType {
 
 	List<String> getSupportedClaims(Map<String, SimpleCustomProperty> configurationAttributes);
 
-    List<String> getSupportedClaims(Map<String, SimpleCustomProperty> configurationAttributes);
-
 }

@@ -41,9 +41,4 @@ public class DummyDynamicScopeType implements DynamicScopeType {
         return null;
     }
 
-    @Override
-    public List<String> getSupportedClaims(Map<String, SimpleCustomProperty> configurationAttributes) {
-        return null;
-    }
-
 }

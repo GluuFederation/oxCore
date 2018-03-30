@@ -19,5 +19,9 @@
 			<artifactId>oxcore-util</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+		</dependency>
 	</dependencies>
 </project>

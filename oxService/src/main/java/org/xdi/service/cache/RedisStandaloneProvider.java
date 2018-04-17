@@ -34,6 +34,7 @@ public class RedisStandaloneProvider extends AbstractRedisProvider {
             poolConfig.setMaxTotal(1000);
             poolConfig.setMinIdle(2);
 
+
             HostAndPort hostAndPort = RedisClusterProvider.hosts(redisConfiguration.getServers()).iterator().next();
             pool = new JedisPool(poolConfig, hostAndPort.getHost(), hostAndPort.getPort());
 
@@ -61,6 +62,7 @@ public class RedisStandaloneProvider extends AbstractRedisProvider {
     @Override
     public Object get(String key) {
         Jedis jedis = pool.getResource();
+        setAuthIfNeeded(jedis);
         try {
             byte[] value = jedis.get(key.getBytes());
             Object deserialized = null;
@@ -76,6 +78,7 @@ public class RedisStandaloneProvider extends AbstractRedisProvider {
     @Override
     public void put(int expirationInSeconds, String key, Object object) {
         Jedis jedis = pool.getResource();
+        setAuthIfNeeded(jedis);
         try {
             String status = jedis.setex(key.getBytes(),
                     expirationInSeconds,
@@ -89,6 +92,7 @@ public class RedisStandaloneProvider extends AbstractRedisProvider {
     @Override
     public void put(String key, Object object) {
         Jedis jedis = pool.getResource();
+        setAuthIfNeeded(jedis);
         try {
             String status = jedis.set(key.getBytes(), SerializationUtils.serialize((Serializable) object));
             LOG.trace("put - key: " + key + ", status: " + status);
@@ -100,6 +104,7 @@ public class RedisStandaloneProvider extends AbstractRedisProvider {
     @Override
     public void remove(String key) {
         Jedis jedis = pool.getResource();
+        setAuthIfNeeded(jedis);
         try {
             Long entriesRemoved = jedis.del(key.getBytes());
             LOG.trace("remove - key: " + key + ", entriesRemoved: " + entriesRemoved);
@@ -111,6 +116,7 @@ public class RedisStandaloneProvider extends AbstractRedisProvider {
     @Override
     public void clear() {
         Jedis jedis = pool.getResource();
+        setAuthIfNeeded(jedis);
         try {
             jedis.flushAll();
             LOG.trace("clear");

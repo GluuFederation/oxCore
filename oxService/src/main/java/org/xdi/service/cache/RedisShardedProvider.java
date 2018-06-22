@@ -2,6 +2,7 @@ package org.xdi.service.cache;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPoolConfig;
@@ -9,6 +10,8 @@ import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 
+import javax.net.ssl.SSLParameters;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +39,7 @@ public class RedisShardedProvider extends AbstractRedisProvider {
             poolConfig.setMaxTotal(1000);
             poolConfig.setMinIdle(2);
 
-            pool = new ShardedJedisPool(poolConfig, shards(redisConfiguration.getServers()));
+            pool = new ShardedJedisPool(poolConfig, shards(redisConfiguration));
 
             testConnection();
             LOG.debug("RedisShardedProvider started.");
@@ -46,17 +49,32 @@ public class RedisShardedProvider extends AbstractRedisProvider {
         }
     }
 
-    private static List<JedisShardInfo> shards(String servers) {
-        final String[] serverWithPorts = StringUtils.split(servers.trim(), ",");
+    private static List<JedisShardInfo> shards(RedisConfiguration configuration) {
+        final String[] serverWithPorts = StringUtils.split(configuration.getServers().trim(), ",");
 
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
         for (String serverWithPort : serverWithPorts) {
             serverWithPort = serverWithPort.trim();
-            if (serverWithPort.contains(":") && !serverWithPort.contains("@") && !servers.contains("//")) {
+            if (serverWithPort.contains(":") && !serverWithPort.contains("@") && !configuration.getServers().contains("//")) {
                 final String[] split = serverWithPort.trim().split(":");
                 String host = split[0];
                 int port = Integer.parseInt(split[1].trim());
-                shards.add(new JedisShardInfo(host, port));
+
+                try {
+                    final JedisShardInfo shardInfo;
+                    if (configuration.getUseSsl()) {
+                        if (StringUtils.isNotBlank(configuration.getSslTrustStoreFilePath())) {
+                            shardInfo = new JedisShardInfo(host, port, true, RedisProviderFactory.createTrustStoreSslSocketFactory(new File(configuration.getSslTrustStoreFilePath())), new SSLParameters(), new DefaultHostnameVerifier());
+                        } else {
+                            shardInfo = new JedisShardInfo(host, port, true);
+                        }
+                    } else {
+                        shardInfo = new JedisShardInfo(host, port);
+                    }
+                    shards.add(shardInfo);
+                } catch (Exception e) {
+                    LOG.error("Failed to create shard info.", e);
+                }
             } else {
                 shards.add(new JedisShardInfo(serverWithPort));
             }

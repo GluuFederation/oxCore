@@ -378,63 +378,101 @@ public class OperationsFacade {
 		return cookie;
 	}
 
-	public SearchResult searchSearchResult(String dn, Filter filter, SearchScope scope, int startIndex, int count, int searchLimit, String sortBy, SortOrder sortOrder, VirtualListViewResponse vlvResponse, String... attributes) throws Exception {
+    public List<SearchResultEntry> searchSearchResultEntryList(String dn, Filter filter, SearchScope scope, int startIndex,
+                                                               int count, int pageSize, String sortBy, SortOrder sortOrder,
+                                                               VirtualListViewResponse vlvResponse, String... attributes) throws Exception {
 
-		if (StringHelper.equalsIgnoreCase(dn, "o=gluu")) {
-			(new Exception()).printStackTrace();
-		}
+	    //This method does not assume that count <= pageSize as occurs in SCIM, but it's more general
 
-		SearchRequest searchRequest;
-		if (attributes == null) {
-			searchRequest = new SearchRequest(dn, scope.getLdapSearchScope(), filter);
-		} else {
-			searchRequest = new SearchRequest(dn, scope.getLdapSearchScope(), filter, attributes);
-		}
-
-		List<SearchResult> searchResultList = new ArrayList<SearchResult>();
-		List<SearchResultEntry> searchResultEntries = new ArrayList<SearchResultEntry>();
-		List<SearchResultReference> searchResultReferences = new ArrayList<SearchResultReference>();
-
-		searchRequest.setControls(new SimplePagedResultsControl(searchLimit));
-		SearchResult searchResult = getConnectionPool().search(searchRequest);
-		List<SearchResultEntry> resultSearchResultEntries = searchResult.getSearchEntries();
-		int totalResults = resultSearchResultEntries.size();
-
-		if (StringUtils.isNotEmpty(sortBy)) {
-            boolean ascending = sortOrder == null || sortOrder.equals(SortOrder.ASCENDING);
-
-            resultSearchResultEntries = sortListByAttributes(resultSearchResultEntries, SearchResultEntry.class, false, ascending, sortBy);
+	    //Why this?
+        if (StringHelper.equalsIgnoreCase(dn, "o=gluu")) {
+            (new Exception()).printStackTrace();
         }
 
-		List<SearchResultEntry> searchResultEntryList = new ArrayList<SearchResultEntry>();
+        List<SearchResultEntry> searchEntries;
+        ASN1OctetString resumeCookie = null;
+        LDAPConnection conn = getConnection();
+        SearchRequest searchRequest = new SearchRequest(dn, scope.getLdapSearchScope(), filter, attributes);
 
-		if (startIndex <= totalResults) {
+        int totalResults = 0;
+        int start = startIndex - 1;  // I hate one-based index positioning
 
-			int diff = (totalResults - startIndex);
-			if (diff <= count) {
-				count = (diff + 1) >= count ? count : (diff + 1);
-			}
+        do {
+            //Keep searching while we reach start index...
+            SearchResult searchResult = nextSearchResult(conn, searchRequest, pageSize, resumeCookie);
+            searchEntries = searchResult.getSearchEntries();
+            totalResults += searchEntries.size();
 
-			int startZeroIndex = startIndex - 1;
-			searchResultEntryList = resultSearchResultEntries.subList(startZeroIndex, startZeroIndex + count);
-		}
+            resumeCookie = getSearchResultCookie(searchResult);
+        } while (totalResults < start && resumeCookie != null);
 
-		searchResultList.add(searchResult);
-		searchResultEntries.addAll(searchResultEntryList);
-		searchResultReferences.addAll(searchResult.getSearchReferences());
+        List<SearchResultEntry> searchResultEntryList = new ArrayList<SearchResultEntry>();
 
-		SearchResult searchResultTemp = searchResultList.get(0);
-		searchResult = new SearchResult(searchResultTemp.getMessageID(), searchResultTemp.getResultCode(), searchResultTemp.getDiagnosticMessage(),
-				                        searchResultTemp.getMatchedDN(), searchResultTemp.getReferralURLs(), searchResultEntries, searchResultReferences,
-				                        searchResultEntries.size(), searchResultReferences.size(), searchResultTemp.getResponseControls());
+        if (totalResults > start) {
+            //Take the interesting ones, ie. skip [0, start) interval
+            int lowerBound = searchEntries.size() - (totalResults - start);
+            int upperBound = Math.min(searchEntries.size(), lowerBound + count);
+            searchResultEntryList.addAll(searchEntries.subList(lowerBound, upperBound));
+        }
 
-		// Get results info
-		vlvResponse.setItemsPerPage(count);
-		vlvResponse.setTotalResults(totalResults);
-		vlvResponse.setStartIndex(startIndex);
+        //Continue adding results till reaching count if needed
+        while (resumeCookie != null && totalResults < count + start) {
+            SearchResult searchResult = nextSearchResult(conn, searchRequest, pageSize, resumeCookie);
+            searchEntries = searchResult.getSearchEntries();
+            searchResultEntryList.addAll(searchEntries);
+            totalResults += searchEntries.size();
 
-		return searchResult;
-	}
+            resumeCookie = getSearchResultCookie(searchResult);
+        }
+
+        if (totalResults > count + start) {
+            //Remove the uninteresting tail
+            searchResultEntryList = searchResultEntryList.subList(0, count);
+        }
+
+        //skip the rest and update the number of total results only
+        while (resumeCookie != null) {
+            SearchResult searchResult = nextSearchResult(conn, searchRequest, pageSize, resumeCookie);
+            searchEntries = searchResult.getSearchEntries();
+            totalResults += searchEntries.size();
+
+            resumeCookie = getSearchResultCookie(searchResult);
+        }
+
+        if (StringUtils.isNotEmpty(sortBy)) {
+            boolean ascending = sortOrder == null || sortOrder.equals(SortOrder.ASCENDING);
+            searchResultEntryList = sortListByAttributes(searchResultEntryList, SearchResultEntry.class, false, ascending, sortBy);
+        }
+
+        // Get results info
+        vlvResponse.setItemsPerPage(searchResultEntryList.size());
+        vlvResponse.setTotalResults(totalResults);
+        vlvResponse.setStartIndex(startIndex);
+
+        releaseConnection(conn);
+        return searchResultEntryList;
+
+    }
+
+    private ASN1OctetString getSearchResultCookie(SearchResult searchResult) throws Exception {
+        SimplePagedResultsControl responseControl = SimplePagedResultsControl.get(searchResult);
+        return responseControl.moreResultsToReturn() ? responseControl.getCookie() : null;
+    }
+
+    private SearchResult nextSearchResult(LDAPConnection connection, SearchRequest searchRequest, int pageSize,
+                                          ASN1OctetString resumeCookie) throws Exception {
+
+        searchRequest.setControls(new SimplePagedResultsControl(pageSize, resumeCookie));
+        SearchResult result = connection.search(searchRequest);
+
+        if (!ResultCode.SUCCESS.equals(result.getResultCode())) {
+            String msgErr = "Search operation returned: " + result.getResultCode();
+            log.error(msgErr);
+            throw new Exception(msgErr);
+        }
+        return result;
+
+    }
 
 	public SearchResult searchVirtualListView(String dn, Filter filter, SearchScope scope, int startIndex, int count, String sortBy, SortOrder sortOrder, VirtualListViewResponse vlvResponse, String... attributes) throws Exception {
 

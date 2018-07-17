@@ -442,26 +442,20 @@ public class LdapEntryManager extends AbstractEntryManager implements Serializab
 			searchFilter = filter;
 		}
 
-		SearchResult searchResult = null;
+		List<SearchResultEntry> searchResultEntries;
 		try {
-
-			searchResult = this.ldapOperationService.searchSearchResult(baseDN, searchFilter, SearchScope.SUB, startIndex, count, searchLimit, sortBy, sortOrder, vlvResponse, currentLdapReturnAttributes);
-
-			if (!ResultCode.SUCCESS.equals(searchResult.getResultCode())) {
-				throw new EntryPersistenceException(String.format("Failed to find entries with baseDN: %s, filter: %s", baseDN, searchFilter));
-			}
-
+            searchResultEntries = this.ldapOperationService.searchSearchResultEntryList(baseDN, searchFilter, SearchScope.SUB,
+                    startIndex, count, searchLimit, sortBy, sortOrder, vlvResponse, currentLdapReturnAttributes);
 		} catch (Exception ex) {
 			throw new EntryPersistenceException(String.format("Failed to find entries with baseDN: %s, filter: %s", baseDN, searchFilter), ex);
 		}
 
-		if (searchResult.getEntryCount() == 0) {
-			return new ArrayList<T>(0);
-		}
-
-		List<T> entries = createEntitiesVirtualListView(entryClass, propertiesAnnotations, searchResult.getSearchEntries().toArray(new SearchResultEntry[searchResult.getSearchEntries().size()]));
-
+        List<T> entries = new ArrayList<T>(0);
+        if (searchResultEntries.size() > 0) {
+            entries = createEntitiesVirtualListView(entryClass, propertiesAnnotations, searchResultEntries.toArray(new SearchResultEntry[]{}));
+        }
 		return entries;
+
 	}
 
 	public <T> List<T> findEntriesVirtualListView(String baseDN, Class<T> entryClass, Filter filter, int startIndex, int count, String sortBy, SortOrder sortOrder, VirtualListViewResponse vlvResponse, String[] ldapReturnAttributes) {

@@ -2,6 +2,7 @@ package org.gluu.ldap;
 
 import java.util.List;
 
+import com.unboundid.ldap.sdk.SearchResultEntry;
 import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
@@ -64,10 +65,12 @@ public class LdapSample {
 
 		try {
 			VirtualListViewResponse virtualListViewResponse = new VirtualListViewResponse();
-			SearchResult searchResult = ldapEntryManager.getLdapOperationService().searchSearchResult("o=gluu", Filter.createEqualityFilter("objectClass", "gluuPerson"), SearchScope.SUB, 10, 100, 100000, "displayName", null, virtualListViewResponse, "uid", "displayName", "gluuStatus");
+			List<SearchResultEntry> entries = ldapEntryManager.getLdapOperationService().searchSearchResultEntryList("o=gluu",
+                    Filter.createEqualityFilter("objectClass", "gluuPerson"), SearchScope.SUB, 10, 100, 100000, "displayName", null,
+                    virtualListViewResponse, "uid", "displayName", "gluuStatus");
 
 			log.debug("Found persons: " + virtualListViewResponse.getTotalResults());
-			System.out.println(searchResult.getSearchEntries());
+			log.trace(entries);
 		} catch (Exception ex) {
 			log.error("Failed to search", ex);
 		}

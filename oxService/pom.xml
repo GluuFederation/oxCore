@@ -24,7 +24,6 @@
 				</includes>
 			</resource>
 		</resources>
-
 	</build>
 
 	<dependencies>
@@ -53,7 +52,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.sun.faces</groupId>
-			<artifactId>jsf-api</artifactId>
+			<artifactId>jsf-impl</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

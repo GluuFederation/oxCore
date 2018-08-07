@@ -1,17 +1,12 @@
 package org.xdi.service.cache;
 
-import java.util.Set;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import org.slf4j.Logger;
 
 /**
  * @author yuriyz on 02/21/2017.
@@ -53,6 +48,9 @@ public class CacheProviderFactory {
             case REDIS:
             	cacheProvider = instance.select(RedisProvider.class).get();
                 break;
+            case NATIVE_PERSISTENCE:
+                cacheProvider = instance.select(NativePersistenceCacheProvider.class).get();
+                break;
         }
 
         if (cacheProvider == null) {
@@ -60,7 +58,7 @@ public class CacheProviderFactory {
         }
 
         cacheProvider.create();
-        
+
         return cacheProvider;
     }
 

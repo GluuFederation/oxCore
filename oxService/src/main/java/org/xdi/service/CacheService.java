@@ -11,6 +11,7 @@ import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.xdi.service.cache.CacheProvider;
+import org.xdi.service.cache.NativePersistenceCacheProvider;
 
 /**
  * Provides operations with cache
@@ -63,6 +64,10 @@ public class CacheService {
 
 	public CacheProvider<?> getCacheProvider() {
 		return cacheProvider;
+	}
+
+	public boolean isNativePersistenceCacheProvider() {
+		return cacheProvider instanceof NativePersistenceCacheProvider;
 	}
 
 }

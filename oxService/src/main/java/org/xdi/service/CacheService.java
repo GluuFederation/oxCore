@@ -37,10 +37,17 @@ public class CacheService {
 		return cacheProvider.get(region, key);
 	}
 
-	public void put(String region, String key, Object object) {
+	public void put(String region, String key, Object object, boolean skipPutOnNativePersistence) {
+		if (skipPutOnNativePersistence) {
+			return;
+		}
 		if (cacheProvider != null) {
 			cacheProvider.put(region, key, object);
 		}
+	}
+
+	public void put(String region, String key, Object object) {
+		put(region, key, object, false);
 	}
 
 	public void remove(String region, String key) {

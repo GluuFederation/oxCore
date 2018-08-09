@@ -118,7 +118,7 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<LdapEn
 
             ldapEntryManager.persist(entity);
         } catch (Exception e) {
-            log.trace("Failed to put entry, key: " + originalKey + ", hashedKey: " + key); // log as trace since it is perfectly valid that entry is removed by timer for example
+            log.trace("Failed to put entry, key: " + originalKey + ", hashedKey: " + key + ", message: " + e.getMessage(), e); // log as trace since it is perfectly valid that entry is removed by timer for example
         }
     }
 
@@ -141,7 +141,7 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<LdapEn
             key = hashKey(key);
             ldapEntryManager.removeWithSubtree(createDn(key));
         } catch (Exception e) {
-            log.trace("Failed to remove entry, key: " + originalKey + ", hashedKey: " + key); // log as trace since it is perfectly valid that entry is removed by timer for example
+            log.trace("Failed to remove entry, key: " + originalKey + ", hashedKey: " + key + ", message: " + e.getMessage(), e); // log as trace since it is perfectly valid that entry is removed by timer for example
         }
     }
 

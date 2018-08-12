@@ -2,7 +2,8 @@
  * oxCore is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
  *
  * Copyright (c) 2014, Gluu
- */package org.xdi.config.oxtrust;
+ */
+package org.xdi.config.oxtrust;
 
 import java.io.Serializable;
 import java.util.List;
@@ -139,6 +140,10 @@ public class AppConfiguration implements Configuration, Serializable {
 	private String passportUmaScope;
 	private String passportUmaClientKeyStoreFile;
 	private String passportUmaClientKeyStorePassword;
+
+    private String recaptchaSiteKey="";
+    private String recaptchaSecretKey="";
+    private boolean authenticationRecaptchaEnabled;
 
 	private String cssLocation;
 	private String jsLocation;
@@ -892,6 +897,14 @@ public class AppConfiguration implements Configuration, Serializable {
 
 	public void setMetricReporterInterval(int metricReporterInterval) {
 		this.metricReporterInterval = metricReporterInterval;
+	}
+
+	public boolean isAuthenticationRecaptchaEnabled() {
+		return authenticationRecaptchaEnabled;
+	}
+
+	public void setAuthenticationRecaptchaEnabled(boolean authenticationRecaptchaEnabled) {
+		this.authenticationRecaptchaEnabled = authenticationRecaptchaEnabled;
 	}
 
 }

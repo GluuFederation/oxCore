@@ -141,15 +141,12 @@ public class AppConfiguration implements Configuration, Serializable {
 	private String passportUmaClientKeyStoreFile;
 	private String passportUmaClientKeyStorePassword;
 
-    private String recaptchaSiteKey="";
-    private String recaptchaSecretKey="";
-    private boolean authenticationRecaptchaEnabled;
+	private String recaptchaSiteKey;
+	private String recaptchaSecretKey;
+	private boolean authenticationRecaptchaEnabled;
 
 	private String cssLocation;
 	private String jsLocation;
-	
-	private String recaptchaSiteKey;
-	private String recaptchaSecretKey;
 
 	private boolean scimTestMode;
 

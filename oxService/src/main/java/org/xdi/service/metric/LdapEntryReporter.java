@@ -161,7 +161,11 @@ public class LdapEntryReporter extends ScheduledReporter {
         reportImpl(counters, timers);
     }
 
-	private void reportImpl(SortedMap<String, Counter> counters, SortedMap<String, Timer> timers) {
+    private void reportImpl(SortedMap<String, Counter> counters, SortedMap<String, Timer> timers) {
+        if (!metricService.isMetricReporterEnabled()) {
+            return;
+        }
+
         final Date currentRunTime = new Date(clock.getTime());
 
         List<MetricEntry> metricEntries = new ArrayList<MetricEntry>();

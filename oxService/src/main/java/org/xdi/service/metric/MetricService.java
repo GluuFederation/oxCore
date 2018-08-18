@@ -380,4 +380,6 @@ public abstract class MetricService implements Serializable {
 
 	public abstract MetricService getMetricServiceInstance();
 
+    public abstract boolean isMetricReporterEnabled();
+
 }

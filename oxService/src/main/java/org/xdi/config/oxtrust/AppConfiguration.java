@@ -173,6 +173,7 @@ public class AppConfiguration implements Configuration, Serializable {
     private int metricReporterInterval;
     private int metricReporterKeepDataDays;
     private Boolean metricReporterEnabled = true;
+    private Boolean disableJdkLogger = true;
 
 	public boolean isOxIncommonFlag() {
 		return oxIncommonFlag;
@@ -920,6 +921,14 @@ public class AppConfiguration implements Configuration, Serializable {
 
     public void setMetricReporterEnabled(Boolean metricReporterEnabled) {
         this.metricReporterEnabled = metricReporterEnabled;
+    }
+
+    public Boolean getDisableJdkLogger() {
+        return disableJdkLogger;
+    }
+
+    public void setDisableJdkLogger(Boolean disableJdkLogger) {
+        this.disableJdkLogger = disableJdkLogger;
     }
 
 }

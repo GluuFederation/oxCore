@@ -114,17 +114,7 @@ public abstract class MetricService implements Serializable {
 		String baseDn = buildDn(null, creationDate, applicationType);
 		// Create ou=YYYY-MM branch if needed
 		if (!containsBranch(baseDn)) {
-			// Create ou=application_type branch if needed
-			String applicationBaseDn = buildDn(null, null, applicationType);
-			if (!containsBranch(applicationBaseDn)) {
-				// Create ou=appliance_inum branch if needed
-				String applianceBaseDn = buildDn(null, null, null);
-				if (!containsBranch(applianceBaseDn)) {
-					createBranch(applianceBaseDn, applianceInum());
-				}
-
-				createBranch(applicationBaseDn, applicationType.getValue());
-			}
+			createApplicationBaseBranch(applicationType);
 
 			if (creationDate != null) {
 				createBranch(baseDn, PERIOD_DATE_FORMAT.format(creationDate));
@@ -132,8 +122,22 @@ public abstract class MetricService implements Serializable {
 		}
 	}
 
+    protected void createApplicationBaseBranch(ApplicationType applicationType) {
+        // Create ou=application_type branch if needed
+        String applicationBaseDn = buildDn(null, null, applicationType);
+        if (!containsBranch(applicationBaseDn)) {
+        	// Create ou=appliance_inum branch if needed
+        	String applianceBaseDn = buildDn(null, null, null);
+        	if (!containsBranch(applianceBaseDn)) {
+        		createBranch(applianceBaseDn, applianceInum());
+        	}
+
+        	createBranch(applicationBaseDn, applicationType.getValue());
+        }
+    }
+
 	public void add(List<MetricEntry> metricEntries, Date creationTime) {
-		prepareBranch(creationTime, ApplicationType.OX_AUTH);
+		prepareBranch(creationTime, getApplicationType());
 
 		for (MetricEntry metricEntry : metricEntries) {
 			ldapEntryManager.persist(metricEntry);
@@ -229,7 +233,9 @@ public abstract class MetricService implements Serializable {
 	}
 
 	public void removeExpiredMetricEntries(int batchSize, final Date expirationDate, final ApplicationType applicationType, final String applianceInum) {
-		final Set<String> keepBaseDnForPeriod = getBaseDnForPeriod(applicationType, applianceInum, expirationDate, new Date());
+	    createApplicationBaseBranch(getApplicationType());
+
+	    final Set<String> keepBaseDnForPeriod = getBaseDnForPeriod(applicationType, applianceInum, expirationDate, new Date());
 		// Remove expired entries
 		for (final String baseDnForPeriod : keepBaseDnForPeriod) {
 			BatchOperation<MetricEntry> metricEntryBatchOperation = new BatchOperation<MetricEntry>(ldapEntryManager) {
@@ -381,5 +387,7 @@ public abstract class MetricService implements Serializable {
 	public abstract MetricService getMetricServiceInstance();
 
     public abstract boolean isMetricReporterEnabled();
+
+    public abstract ApplicationType getApplicationType();
 
 }

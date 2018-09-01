@@ -175,6 +175,9 @@ public class AppConfiguration implements Configuration, Serializable {
     private Boolean metricReporterEnabled = true;
     private Boolean disableJdkLogger = true;
 
+    private int passwordResetRequestExpirationTime; // in seconds
+    private int cleanServiceInterval;
+
 	public boolean isOxIncommonFlag() {
 		return oxIncommonFlag;
 	}
@@ -929,6 +932,22 @@ public class AppConfiguration implements Configuration, Serializable {
 
     public void setDisableJdkLogger(Boolean disableJdkLogger) {
         this.disableJdkLogger = disableJdkLogger;
+    }
+
+    public int getPasswordResetRequestExpirationTime() {
+        return passwordResetRequestExpirationTime;
+    }
+
+    public void setPasswordResetRequestExpirationTime(int passwordResetRequestExpirationTime) {
+        this.passwordResetRequestExpirationTime = passwordResetRequestExpirationTime;
+    }
+
+    public int getCleanServiceInterval() {
+        return cleanServiceInterval;
+    }
+
+    public void setCleanServiceInterval(int cleanServiceInterval) {
+        this.cleanServiceInterval = cleanServiceInterval;
     }
 
 }

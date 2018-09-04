@@ -162,21 +162,24 @@ public class LDAPConnectionProvider {
             long healthCheckIntervalMillis = StringHelper.toLong(props.getProperty("connection-pool.health-check.interval-millis"), 0);
             long healthCheckMaxResponsetimeMillis = StringHelper.toLong(props.getProperty("connection-pool.health-check.max-response-time-millis"), 0);
 
-            boolean backgroundHealthCheckEnabled = !onCheckoutHealthCheckEnabled;
+            boolean backgroundHealthCheckEnabled = !onCheckoutHealthCheckEnabled && (healthCheckIntervalMillis > 0);
             // Because otherwise it has no effect anyway
             if (backgroundHealthCheckEnabled) {
                 this.connectionPool.setHealthCheckIntervalMillis(healthCheckIntervalMillis);
             }
-            GetEntryLDAPConnectionPoolHealthCheck healthChecker = new GetEntryLDAPConnectionPoolHealthCheck(// entryDN (null means root DSE)
-                    null, // maxResponseTime
-                    healthCheckMaxResponsetimeMillis, // invokeOnCreate
-                    false, // invokeOnCheckout
-                    onCheckoutHealthCheckEnabled, // invokeOnRelease
-                    false, // invokeForBackgroundChecks
-                    backgroundHealthCheckEnabled, // invokeOnException
-                    false);
-            
-            this.connectionPool.setHealthCheck(healthChecker);
+
+            if (onCheckoutHealthCheckEnabled || backgroundHealthCheckEnabled) {
+                GetEntryLDAPConnectionPoolHealthCheck healthChecker = new GetEntryLDAPConnectionPoolHealthCheck(// entryDN (null means root DSE)
+                        null, // maxResponseTime
+                        healthCheckMaxResponsetimeMillis, // invokeOnCreate
+                        false, // invokeOnCheckout
+                        onCheckoutHealthCheckEnabled, // invokeOnRelease
+                        false, // invokeForBackgroundChecks
+                        backgroundHealthCheckEnabled, // invokeOnException
+                        false);
+                
+                this.connectionPool.setHealthCheck(healthChecker);
+            }
 		}
 		
 		this.binaryAttributes = new ArrayList<String>();

@@ -28,12 +28,17 @@ public class DummyCacheRefreshType implements CacheRefreshType {
 
 	@Override
 	public int getApiVersion() {
-		return 1;
+		return 2;
 	}
 
 	@Override
 	public boolean updateUser(Object person, Map<String, SimpleCustomProperty> configurationAttributes) {
 		return false;
 	}
+
+    @Override
+    public String getBindCredentials(String configId, Map<String, SimpleCustomProperty> configurationAttributes) {
+        return null;
+    }
 
 }

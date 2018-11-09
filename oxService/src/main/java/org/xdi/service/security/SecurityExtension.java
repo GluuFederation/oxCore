@@ -57,7 +57,7 @@ public class SecurityExtension implements Extension {
 		}
 	}
 
-	private <T> void collectAnnotations(Class<T> annotationType, AnnotatedMethod method, List<T> values) {
+	private <T> void collectAnnotations(Class<T> annotationType, AnnotatedMethod<?> method, List<T> values) {
 		for (Annotation annotation : method.getAnnotations()) {
 			collectAnnotations(annotationType, annotation, values);
 		}

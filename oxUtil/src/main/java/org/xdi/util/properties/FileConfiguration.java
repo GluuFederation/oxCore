@@ -6,7 +6,6 @@
 
 package org.xdi.util.properties;
 
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -57,7 +56,10 @@ public class FileConfiguration {
 			this.propertiesConfiguration = new PropertiesConfiguration(this.fileName);
 			this.loaded = true;
 		} catch (ConfigurationException ex) {
-			log.debug(String.format("Failed to load '%s' configuration file from config folder", this.fileName));
+			log.error(String.format("Failed to load '%s' configuration file from config folder", this.fileName));
+		} catch (Exception e) {
+			log.error(String.format("Failed to load '%s' configuration file from config folder", this.fileName));
+			log.error(e.getMessage(), e);
 		}
 	}
 
@@ -67,7 +69,10 @@ public class FileConfiguration {
 			this.propertiesConfiguration = new PropertiesConfiguration(this.fileName);
 			this.loaded = true;
 		} catch (ConfigurationException ex) {
-			log.debug(String.format("Failed to load '%s' configuration file from resources", this.fileName));
+			log.error(String.format("Failed to load '%s' configuration file from resources", this.fileName));
+		} catch (Exception e) {
+			log.error(String.format("Failed to load '%s' configuration file from config folder", this.fileName));
+			log.error(e.getMessage(), e);
 		}
 	}
 
@@ -89,8 +94,8 @@ public class FileConfiguration {
 				loadProperties();
 			}
 		} finally {
-            reloadLock.unlock(); // first unlock, for some reason findbug reported this?
-            this.isReload = false;
+			reloadLock.unlock(); // first unlock, for some reason findbug reported this?
+			this.isReload = false;
 		}
 	}
 
@@ -226,31 +231,31 @@ public class FileConfiguration {
 	}
 
 	public boolean isKeyExist(String key) {
-        @SuppressWarnings("unchecked")
-        Iterator<String> keyIterator = propertiesConfiguration.getKeys();
-        while (keyIterator.hasNext()) {
-            String k = keyIterator.next();
-            if (k.equals(key)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public String getKey(String value) {
-        @SuppressWarnings("unchecked")
+		@SuppressWarnings("unchecked")
 		Iterator<String> keyIterator = propertiesConfiguration.getKeys();
-        while (keyIterator.hasNext()) {
-            String k = keyIterator.next();
-            String v = propertiesConfiguration.getString(k);
-            if (v.equals(value)) {
-                return k;
-            }
-        }
+		while (keyIterator.hasNext()) {
+			String k = keyIterator.next();
+			if (k.equals(key)) {
+				return true;
+			}
+		}
 
-        return null;
-    }
+		return false;
+	}
+
+	public String getKey(String value) {
+		@SuppressWarnings("unchecked")
+		Iterator<String> keyIterator = propertiesConfiguration.getKeys();
+		while (keyIterator.hasNext()) {
+			String k = keyIterator.next();
+			String v = propertiesConfiguration.getString(k);
+			if (v.equals(value)) {
+				return k;
+			}
+		}
+
+		return null;
+	}
 
 	public PropertiesConfiguration getPropertiesConfiguration() {
 		return propertiesConfiguration;

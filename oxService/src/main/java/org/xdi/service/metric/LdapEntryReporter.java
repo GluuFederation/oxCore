@@ -226,7 +226,7 @@ public class LdapEntryReporter extends ScheduledReporter {
 		for (MetricType metricType : registeredMetricTypes) {
 			Timer timer = timers.get(metricType.getValue());
         	if (timer != null) {
-				Snapshot snapshot = timer .getSnapshot();
+				Snapshot snapshot = timer.getSnapshot();
 	
 				TimerMetricData timerMetricData = new TimerMetricData(
 						timer.getCount(),

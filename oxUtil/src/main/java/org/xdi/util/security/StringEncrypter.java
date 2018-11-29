@@ -329,15 +329,4 @@ public class StringEncrypter {
 			lock.unlock();
 		}
 	}
-
-	/*
-	 * private String decrypt2(final String password){ final String
-	 * encryptionKey = "123456789012345678901234567890"; final String
-	 * encryptionScheme = StringEncrypter.DESEDE_ENCRYPTION_SCHEME;
-	 * 
-	 * try { final StringEncrypter encrypter = new StringEncrypter(
-	 * encryptionScheme, encryptionKey ); return encrypter.decrypt(password); }
-	 * catch (final EncryptionException e) { e.printStackTrace(); } return
-	 * "invalidpass"; }
-	 */
 }

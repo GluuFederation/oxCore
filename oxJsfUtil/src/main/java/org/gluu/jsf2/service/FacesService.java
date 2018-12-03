@@ -43,9 +43,20 @@ public class FacesService {
 		}
 	}
 
+	public String resolveUrl(String viewId, Map<String, Object> parameters) {
+        if (viewId == null) {
+            throw new RedirectException("Cannot redirect to a null viewId");
+        }
+
+        String url = facesContext.getApplication().getViewHandler().getRedirectURL(facesContext, viewId,
+                Collections.<String, List<String>>emptyMap(), false);
+        
+        return url;
+	}
+
 	public void redirect(String viewId, Map<String, Object> parameters) {
 		if (viewId == null) {
-			throw new RedirectException("cannot redirect to a null viewId");
+			throw new RedirectException("Cannot redirect to a null viewId");
 		}
 
 		String url = facesContext.getApplication().getViewHandler().getRedirectURL(facesContext, viewId,

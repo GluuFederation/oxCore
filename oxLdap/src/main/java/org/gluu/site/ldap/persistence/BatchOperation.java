@@ -82,7 +82,12 @@ public abstract class BatchOperation<T> {
 	}
 
 	public void releaseConnection() {
+	    if (ldapConnection == null) {
+	        return;
+	    }
+
 		ldapConnectionPool.releaseConnection(ldapConnection);
+        ldapConnection = null;
 	}
 
 }

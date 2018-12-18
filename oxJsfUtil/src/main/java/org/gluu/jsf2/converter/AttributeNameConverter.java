@@ -17,7 +17,7 @@ import org.xdi.service.AttributeService;
 
 @FacesConverter("org.gluu.jsf2.converter.AttributeNameConverter")
 public class AttributeNameConverter implements Converter {
-	
+
 	@Inject
 	private AttributeService attributeService;
 
@@ -26,10 +26,7 @@ public class AttributeNameConverter implements Converter {
 		if (value == null) {
 			return null;
 		}
-
-		GluuAttribute attribute = attributeService.getAttributeByName(value);
-
-		return attribute;
+		return attributeService.getAttributeByName(value);
 	}
 
 	@Override

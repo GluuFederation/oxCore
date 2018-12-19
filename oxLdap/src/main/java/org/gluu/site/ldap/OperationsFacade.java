@@ -330,7 +330,9 @@ public class OperationsFacade {
 			} finally {
 				if (ldapConnection != null) {
 					if (batchOperation != null) {
-						batchOperation.releaseConnection();
+					    if (!batchOperation.isMoreResultsToReturn()) {
+					        batchOperation.releaseConnection();
+					    }
 					} else {
 						getConnectionPool().releaseConnection(ldapConnection);
 					}

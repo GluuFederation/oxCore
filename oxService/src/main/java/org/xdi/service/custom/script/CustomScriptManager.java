@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -487,7 +488,12 @@ public class CustomScriptManager implements Serializable {
 
 	public List<CustomScriptConfiguration> getCustomScriptConfigurationsByScriptType(
 			CustomScriptType customScriptType) {
-		return new ArrayList<CustomScriptConfiguration>(
+	    if (!this.customScriptConfigurationsByScriptType.containsKey(customScriptType)) {
+	        log.error("Script type {} not registered", customScriptType.getDisplayName());
+	        return Collections.emptyList();
+	    }
+
+	    return new ArrayList<CustomScriptConfiguration>(
 				this.customScriptConfigurationsByScriptType.get(customScriptType));
 	}
 

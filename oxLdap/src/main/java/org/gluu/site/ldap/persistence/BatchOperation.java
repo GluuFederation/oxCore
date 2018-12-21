@@ -69,16 +69,25 @@ public abstract class BatchOperation<T> {
 		this.cookie = cookie;
 	}
 
+    public boolean isMoreResultsToReturn() {
+        return moreResultsToReturn;
+    }
+
 	public void setMoreResultsToReturn(boolean moreResultsToReturn) {
 		this.moreResultsToReturn = moreResultsToReturn;
 	}
 
-	public LDAPConnection getLdapConnection() {
+    public LDAPConnection getLdapConnection() {
 		return ldapConnection;
 	}
 
 	public void releaseConnection() {
+	    if (ldapConnection == null) {
+	        return;
+	    }
+
 		ldapConnectionPool.releaseConnection(ldapConnection);
+        ldapConnection = null;
 	}
 
 }

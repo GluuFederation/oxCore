@@ -5,11 +5,12 @@
  */package org.xdi.service.net;
 
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -20,8 +21,7 @@ import org.xdi.util.StringHelper;
  *
  * @author Yuriy Movchan Date: 04/28/2016
  */
-@Stateless
-@Named
+@ApplicationScoped
 public class NetworkService implements Serializable {
 
 	private static final long serialVersionUID = -1393318600428448743L;
@@ -50,6 +50,18 @@ public class NetworkService implements Serializable {
         }
         
         return remoteIp;
+    }
+
+    public String getHost(String serverUri) {
+        URI uri;
+        try {
+            uri = new URI(serverUri);
+            return uri.getHost();
+        } catch (URISyntaxException ex) {
+            log.error("Failed to get remote IP", ex);
+        }
+        
+        return serverUri;
     }
 
 }

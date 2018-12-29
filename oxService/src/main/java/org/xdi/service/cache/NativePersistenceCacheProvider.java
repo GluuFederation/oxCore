@@ -187,7 +187,7 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<LdapEn
             oos.close();
             return Base64.encodeBase64String(baos.toByteArray());
         } catch (Exception e) {
-            log.error("Failed to serizalize cache entity to string, object: " + o);
+            log.error("Failed to serialize cache entity to string, object: " + o);
             return null;
         } finally {
             IOUtils.closeQuietly(oos);

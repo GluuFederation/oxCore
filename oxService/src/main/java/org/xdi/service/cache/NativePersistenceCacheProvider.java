@@ -10,6 +10,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.codec.binary.Base64;
@@ -27,11 +28,10 @@ import com.unboundid.ldap.sdk.Filter;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.util.StaticUtils;
 
+@ApplicationScoped
 public class NativePersistenceCacheProvider extends AbstractCacheProvider<LdapEntryManager> {
 
     private final static Logger log = LoggerFactory.getLogger(NativePersistenceCacheProvider.class);
-
-    public final static int BATCH_SIZE = 25;
 
     @Inject
     private CacheConfiguration cacheConfiguration;

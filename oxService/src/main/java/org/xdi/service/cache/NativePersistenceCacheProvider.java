@@ -1,8 +1,17 @@
 package org.xdi.service.cache;
 
-import com.unboundid.ldap.sdk.Filter;
-import com.unboundid.ldap.sdk.LDAPException;
-import com.unboundid.util.StaticUtils;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.TimeZone;
+
+import javax.inject.Inject;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
@@ -14,21 +23,21 @@ import org.slf4j.LoggerFactory;
 import org.xdi.ldap.model.SearchScope;
 import org.xdi.ldap.model.SimpleBranch;
 
-import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.*;
+import com.unboundid.ldap.sdk.Filter;
+import com.unboundid.ldap.sdk.LDAPException;
+import com.unboundid.util.StaticUtils;
 
 public class NativePersistenceCacheProvider extends AbstractCacheProvider<LdapEntryManager> {
 
     private final static Logger log = LoggerFactory.getLogger(NativePersistenceCacheProvider.class);
 
+    public final static int BATCH_SIZE = 25;
+
     @Inject
-    CacheConfiguration cacheConfiguration;
+    private CacheConfiguration cacheConfiguration;
+
     @Inject
-    LdapEntryManager ldapEntryManager;
+    private LdapEntryManager ldapEntryManager;
 
     private String baseDn;
 
@@ -159,6 +168,7 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<LdapEn
 
     @Override
     public void clear() {
+        // TODO: Implement all specific application objects removal
     }
 
     private static Object fromString(String s) {
@@ -192,6 +202,11 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<LdapEn
         } finally {
             IOUtils.closeQuietly(oos);
         }
+    }
+
+    @Override
+    public void cleanup(final Date now) {
+        cleanup(now, cacheConfiguration.getNativePersistenceConfiguration().getDefaultCleanupBatchSize());
     }
 
     public void cleanup(final Date now, int batchSize) {
@@ -233,4 +248,10 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<LdapEn
 
         log.debug("End NATIVE_PERSISTENCE clean up");
     }
+
+    @Override
+    public CacheProviderType getProviderType() {
+        return CacheProviderType.NATIVE_PERSISTENCE;
+    }
+
 }

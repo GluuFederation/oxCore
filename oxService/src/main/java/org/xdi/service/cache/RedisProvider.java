@@ -107,4 +107,10 @@ public class RedisProvider extends AbstractCacheProvider<AbstractRedisProvider> 
     public void clear() {
         redisProvider.clear();
     }
+
+    @Override
+    public CacheProviderType getProviderType() {
+        return CacheProviderType.REDIS;
+    }
+
 }

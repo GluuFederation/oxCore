@@ -7,16 +7,26 @@
 package org.gluu.site.ldap;
 
 import java.io.Serializable;
-import java.util.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.unboundid.ldap.sdk.schema.AttributeTypeDefinition;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.gluu.site.ldap.exception.ConnectionException;
 import org.gluu.site.ldap.exception.DuplicateEntryException;
 import org.gluu.site.ldap.exception.InvalidSimplePageControlException;
 import org.gluu.site.ldap.persistence.BatchOperation;
 import org.gluu.site.ldap.persistence.exception.MappingException;
+import org.gluu.site.watch.DurationUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xdi.ldap.model.SearchScope;
 import org.xdi.ldap.model.SortOrder;
 import org.xdi.ldap.model.VirtualListViewResponse;
@@ -49,6 +59,7 @@ import com.unboundid.ldap.sdk.controls.SortKey;
 import com.unboundid.ldap.sdk.controls.SubtreeDeleteRequestControl;
 import com.unboundid.ldap.sdk.controls.VirtualListViewRequestControl;
 import com.unboundid.ldap.sdk.controls.VirtualListViewResponseControl;
+import com.unboundid.ldap.sdk.schema.AttributeTypeDefinition;
 import com.unboundid.ldif.LDIFChangeRecord;
 
 /**
@@ -60,7 +71,7 @@ import com.unboundid.ldif.LDIFChangeRecord;
  */
 public class OperationsFacade {
 
-	private static final Logger log = Logger.getLogger(OperationsFacade.class);
+    private static final Logger log = LoggerFactory.getLogger(OperationsFacade.class);
 
 	public static final String dn = "dn";
 	public static final String uid = "uid";
@@ -160,15 +171,23 @@ public class OperationsFacade {
 	}
 
 	private boolean authenticateImpl(final String userName, final String password, final String baseDN) throws LDAPException, ConnectionException {
-		return authenticateImpl(lookupDnByUid(userName, baseDN), password);
+        return authenticateImpl(lookupDnByUid(userName, baseDN), password);
 	}
 
 	private boolean authenticateImpl(final String bindDn, final String password) throws LDAPException, ConnectionException {
+        Instant start = DurationUtil.now();
+
+        boolean result = false;
 		if (this.bindConnectionProvider == null) {
-			return authenticateConnectionPoolImpl(bindDn, password);
+		    result = authenticateConnectionPoolImpl(bindDn, password);
 		} else {
-			return authenticateBindConnectionPoolImpl(bindDn, password);
+		    result = authenticateBindConnectionPoolImpl(bindDn, password);
 		}
+
+		Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: bind, duration: {}, dn: {}", duration, bindDn);
+        
+        return result;
 	}
 
 	private boolean authenticateConnectionPoolImpl(final String bindDn, final String password) throws LDAPException, ConnectionException {
@@ -214,7 +233,18 @@ public class OperationsFacade {
 	/**
 	 * Looks the uid in ldap and return the DN
 	 */
-	protected String lookupDnByUid(String uid, String baseDN) throws LDAPSearchException {
+    protected String lookupDnByUid(String uid, String baseDN) throws LDAPSearchException {
+        Instant start = DurationUtil.now();
+
+        String result = lookupDnByUidImpl(uid, baseDN);
+
+        Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: lookup, duration: {}, dn: {}, uid: {}", duration, dn, uid);
+        
+        return result;
+    }
+
+    protected String lookupDnByUidImpl(String uid, String baseDN) throws LDAPSearchException {
 		Filter filter = Filter.createEqualityFilter(OperationsFacade.uid, uid);
 		SearchResult searchResult = search(baseDN, filter, 1, 1);
 		if ((searchResult != null) && searchResult.getEntryCount() > 0) {
@@ -238,7 +268,19 @@ public class OperationsFacade {
 		return search(dn, filter, scope, null, 0, searchLimit, sizeLimit, controls, attributes);
 	}
 
-	public SearchResult search(String dn, Filter filter, SearchScope scope, BatchOperation<?> batchOperation, int startIndex, int searchLimit, int sizeLimit, Control[] controls, String... attributes)
+    public SearchResult search(String dn, Filter filter, SearchScope scope, BatchOperation<?> batchOperation, int startIndex, int searchLimit, int sizeLimit, Control[] controls, String... attributes)
+            throws LDAPSearchException {
+        Instant start = DurationUtil.now();
+
+        SearchResult result = searchImpl(dn, filter, scope, batchOperation, startIndex, searchLimit, sizeLimit, controls, attributes);
+        
+        Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: search, duration: {}, dn: {}, filter: {}, scope: {}, batchOperation: {}, startIndex: {}, searchLimit: {}, sizeLimit: {}, controls: {}, attributes: {}", duration, dn, filter, scope, batchOperation, startIndex, searchLimit, sizeLimit, controls, attributes);
+        
+        return result;
+    }
+    
+	private SearchResult searchImpl(String dn, Filter filter, SearchScope scope, BatchOperation<?> batchOperation, int startIndex, int searchLimit, int sizeLimit, Control[] controls, String... attributes)
 			throws LDAPSearchException {
 		SearchRequest searchRequest;
 
@@ -380,13 +422,28 @@ public class OperationsFacade {
 		return cookie;
 	}
 
-    public List<SearchResultEntry> searchSearchResultEntryList(String dn, Filter filter, SearchScope scope, int startIndex,
+	public List<SearchResultEntry> searchSearchResultEntryList(String dn, Filter filter, SearchScope scope, int startIndex,
+            int count, int pageSize, String sortBy, SortOrder sortOrder,
+            VirtualListViewResponse vlvResponse, String... attributes) throws Exception {
+        Instant start = DurationUtil.now();
+
+	    List<SearchResultEntry> result = searchSearchResultEntryListImpl(dn, filter, scope, startIndex,
+                count, pageSize, sortBy, sortOrder, vlvResponse, attributes);
+
+	    Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: search_result_list, duration: {}, dn: {}, filter: {}, scope: {}, startIndex: {}, count: {}, pageSize: {}, sortBy: {}, sortOrder: {}, vlvResponse: {}, attributes: {}", duration, dn, filter, scope, startIndex, count, pageSize, sortBy, sortOrder, vlvResponse, attributes);
+	    
+	    return result;
+	}
+
+    private List<SearchResultEntry> searchSearchResultEntryListImpl(String dn, Filter filter, SearchScope scope, int startIndex,
                                                                int count, int pageSize, String sortBy, SortOrder sortOrder,
                                                                VirtualListViewResponse vlvResponse, String... attributes) throws Exception {
 
 	    //This method does not assume that count <= pageSize as occurs in SCIM, but it's more general
 
 	    //Why this?
+        // Just for all places in code which uses base DN "o=gluu"
         if (StringHelper.equalsIgnoreCase(dn, "o=gluu")) {
             (new Exception()).printStackTrace();
         }
@@ -476,8 +533,18 @@ public class OperationsFacade {
 
     }
 
-	public SearchResult searchVirtualListView(String dn, Filter filter, SearchScope scope, int startIndex, int count, String sortBy, SortOrder sortOrder, VirtualListViewResponse vlvResponse, String... attributes) throws Exception {
+    public SearchResult searchVirtualListView(String dn, Filter filter, SearchScope scope, int startIndex, int count, String sortBy, SortOrder sortOrder, VirtualListViewResponse vlvResponse, String... attributes) throws Exception {
+        Instant start = DurationUtil.now();
 
+        SearchResult result = searchVirtualListViewImpl(dn, filter, scope, startIndex, count, sortBy, sortOrder, vlvResponse, attributes);
+
+        Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: search_virtual_list_view, duration: {}, dn: {}, filter: {}, scope: {}, startIndex: {}, count: {}, sortBy: {}, sortOrder: {}, vlvResponse: {}, attributes: {}", duration, dn, filter, scope, startIndex, count, sortBy, sortOrder, vlvResponse, attributes);
+
+        return result;
+    }
+
+    private SearchResult searchVirtualListViewImpl(String dn, Filter filter, SearchScope scope, int startIndex, int count, String sortBy, SortOrder sortOrder, VirtualListViewResponse vlvResponse, String... attributes) throws Exception {
 		if (StringHelper.equalsIgnoreCase(dn, "o=gluu")) {
 			(new Exception()).printStackTrace();
 		}
@@ -559,7 +626,19 @@ public class OperationsFacade {
 	 * @return SearchResultEntry
 	 * @throws ConnectionException
 	 */
-	public SearchResultEntry lookup(String dn, String... attributes) throws ConnectionException {
+
+    public SearchResultEntry lookup(String dn, String... attributes) throws ConnectionException {
+        Instant start = DurationUtil.now();
+
+        SearchResultEntry result = lookupImpl(dn, attributes);
+
+        Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: lookup, duration: {}, dn: {}, attributes: {}", duration, dn, attributes);
+        
+        return result;
+    }
+
+	private SearchResultEntry lookupImpl(String dn, String... attributes) throws ConnectionException {
 		if (StringHelper.equalsIgnoreCase(dn, "o=gluu")) {
 			(new Exception()).printStackTrace();
 		}
@@ -589,7 +668,18 @@ public class OperationsFacade {
 	 * @throws ConnectionException
 	 * @throws LDAPException
 	 */
-	public boolean addEntry(String dn, Collection<Attribute> atts) throws DuplicateEntryException, ConnectionException {
+    public boolean addEntry(String dn, Collection<Attribute> atts) throws DuplicateEntryException, ConnectionException {
+        Instant start = DurationUtil.now();
+
+        boolean result = addEntryImpl(dn, atts);
+
+        Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: add, duration: {}, dn: {}, atts: {}", duration, dn, atts);
+
+        return result;
+    }
+
+	private boolean addEntryImpl(String dn, Collection<Attribute> atts) throws DuplicateEntryException, ConnectionException {
 		try {
 			LDAPResult result = getConnectionPool().add(dn, atts);
 			if (result.getResultCode().getName().equalsIgnoreCase(OperationsFacade.success))
@@ -645,8 +735,20 @@ public class OperationsFacade {
 	}
 
 	public boolean updateEntry(String dn, List<Modification> modifications) throws DuplicateEntryException, ConnectionException {
-		ModifyRequest modifyRequest = new ModifyRequest(dn, modifications);
-		return modifyEntry(modifyRequest);
+		return updateEntryImpl(dn, modifications);
+	}
+
+	private boolean updateEntryImpl(String dn, List<Modification> modifications) throws DuplicateEntryException, ConnectionException {
+        Instant start = DurationUtil.now();
+
+        ModifyRequest modifyRequest = new ModifyRequest(dn, modifications);
+        boolean result = modifyEntry(modifyRequest);
+
+        Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: modify, duration: {}, dn: {}, modifications: {}", duration, dn, modifications);
+        
+        return result;
+
 	}
 
 	/**
@@ -684,7 +786,17 @@ public class OperationsFacade {
 	 * @param dn
 	 * @throws ConnectionException
 	 */
-	public void delete(String dn) throws ConnectionException {
+
+    public void delete(String dn) throws ConnectionException {
+        Instant start = DurationUtil.now();
+
+        deleteImpl(dn);
+
+        Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: delete, duration: {}, dn: {}", duration, dn);
+    }
+
+	private void deleteImpl(String dn) throws ConnectionException {
 		try {
 			getConnectionPool().delete(dn);
 		} catch (Exception ex) {
@@ -698,7 +810,17 @@ public class OperationsFacade {
    	 * @param dn
    	 * @throws ConnectionException
    	 */
+
     public void deleteWithSubtree(String dn) throws ConnectionException {
+        Instant start = DurationUtil.now();
+
+        deleteWithSubtreeImpl(dn);
+
+        Duration duration = DurationUtil.duration(start);
+        DurationUtil.logDebug("LDAP operation: delete_tree, duration: {}, dn: {}", duration, dn);
+    }
+
+    private void deleteWithSubtreeImpl(String dn) throws ConnectionException {
         try {
             final DeleteRequest deleteRequest = new DeleteRequest(dn);
             deleteRequest.addControl(new SubtreeDeleteRequestControl());

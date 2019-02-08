@@ -239,7 +239,7 @@ public class OperationsFacade {
         String result = lookupDnByUidImpl(uid, baseDN);
 
         Duration duration = DurationUtil.duration(start);
-        DurationUtil.logDebug("LDAP operation: lookup, duration: {}, dn: {}, uid: {}", duration, dn, uid);
+        DurationUtil.logDebug("LDAP operation: lookup, duration: {}, dn: {}, uid: {}", duration, baseDN, uid);
         
         return result;
     }
@@ -668,13 +668,13 @@ public class OperationsFacade {
 	 * @throws ConnectionException
 	 * @throws LDAPException
 	 */
-    public boolean addEntry(String dn, Collection<Attribute> atts) throws DuplicateEntryException, ConnectionException {
+    public boolean addEntry(String dn, Collection<Attribute> attributes) throws DuplicateEntryException, ConnectionException {
         Instant start = DurationUtil.now();
 
-        boolean result = addEntryImpl(dn, atts);
+        boolean result = addEntryImpl(dn, attributes);
 
         Duration duration = DurationUtil.duration(start);
-        DurationUtil.logDebug("LDAP operation: add, duration: {}, dn: {}, atts: {}", duration, dn, atts);
+        DurationUtil.logDebug("LDAP operation: add, duration: {}, dn: {}, atts: {}", duration, dn, attributes);
 
         return result;
     }

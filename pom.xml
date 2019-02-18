@@ -70,6 +70,7 @@
         <module>oxServer</module>
         <module>oxGwt</module>
         <module>oxJsfUtil</module>
+		<module>oxRadius</module>
     </modules>
 
     <dependencyManagement>

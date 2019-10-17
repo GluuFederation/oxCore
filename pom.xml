@@ -19,7 +19,7 @@
 
 		<resteasy.version>3.0.24.Final</resteasy.version>
 
-		<weld.version>3.0.5.Final</weld.version>
+		<weld.version>3.0.6.Final</weld.version>
 		<richfaces.version>4.5.17-gluu.Final</richfaces.version>
 
 		<jsf-api.version>2.2.16</jsf-api.version>
@@ -339,8 +339,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>2.3.2</version>
                     <configuration>
-                        <source>1.6</source>
-                        <target>1.6</target>
+                        <source>1.8</source>
+                        <target>1.8</target>
                         <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>

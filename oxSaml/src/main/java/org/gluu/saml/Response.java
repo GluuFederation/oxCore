@@ -7,13 +7,20 @@
 package org.gluu.saml;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.lang.reflect.Method;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +44,31 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.codec.binary.Base64;
+import org.opensaml.core.config.InitializationService;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.core.xml.io.Unmarshaller;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Attribute;
+import org.opensaml.saml.saml2.core.AttributeStatement;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.encryption.Decrypter;
+import org.opensaml.saml.saml2.encryption.EncryptedElementTypeEncryptedKeyResolver;
+import org.opensaml.security.credential.BasicCredential;
+import org.opensaml.xmlsec.encryption.support.ChainingEncryptedKeyResolver;
+import org.opensaml.xmlsec.encryption.support.EncryptedKeyResolver;
+import org.opensaml.xmlsec.encryption.support.InlineEncryptedKeyResolver;
+import org.opensaml.xmlsec.encryption.support.SimpleRetrievalMethodEncryptedKeyResolver;
+import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoCredentialResolver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xdi.xml.SimpleNamespaceContext;
 import org.xml.sax.SAXException;
+
+import net.shibboleth.utilities.java.support.xml.BasicParserPool;
+
 
 /**
  * Loads and validates SAML response
@@ -68,6 +94,9 @@ public class Response {
 
 	private Document xmlDoc;
 	private SamlConfiguration samlSettings;
+	
+	private org.opensaml.saml.saml2.core.Response encryptedResponse;
+	private Assertion assertion;
 
 	public Response(SamlConfiguration samlSettings) throws CertificateException {
 		this.samlSettings = samlSettings;
@@ -218,4 +247,90 @@ public class Response {
 
 		transformer.transform(new DOMSource(xmlDoc), new StreamResult(new OutputStreamWriter(out, "UTF-8")));
 	}
+
+	
+	public String getDecryptedNameId() {		
+		return assertion.getSubject().getNameID().getValue();
+	}
+
+	public Map<String, List<String>> getDecryptedAttributes(String keystoreType, String keystoreLocation, String keystorePwd, String keyAlias, String keyPassword) throws Exception {
+		Map<String, List<String>> result = new HashMap<String, List<String>>();
+
+		try {
+			File loc = new File(keystoreLocation);
+			FileInputStream fis = new FileInputStream(loc);
+			KeyStore ks = KeyStore.getInstance(keystoreType);
+			ks.load(fis, keystorePwd.toCharArray());
+			X509Certificate cert = (X509Certificate) ks.getCertificate(keyAlias);
+			PrivateKey privateKey = (PrivateKey) ks.getKey(keyAlias, keyPassword.toCharArray());	
+            PublicKey pubKey = cert.getPublicKey();
+
+			EncryptedAssertion encryptedAssertion = encryptedResponse.getEncryptedAssertions().get(0);
+
+			BasicCredential basicCredential = new BasicCredential(pubKey, privateKey);
+			StaticKeyInfoCredentialResolver keyInfoCredentialResolver = new StaticKeyInfoCredentialResolver(basicCredential);
+			
+			List<EncryptedKeyResolver> encKeyResolvers = new ArrayList<EncryptedKeyResolver>();
+			encKeyResolvers.add(new InlineEncryptedKeyResolver());
+			encKeyResolvers.add(new EncryptedElementTypeEncryptedKeyResolver());
+			encKeyResolvers.add(new SimpleRetrievalMethodEncryptedKeyResolver());
+		    ChainingEncryptedKeyResolver keyResolver = new ChainingEncryptedKeyResolver(encKeyResolvers);
+			 
+		    Decrypter decrypter = new Decrypter(null, keyInfoCredentialResolver, keyResolver);
+			decrypter.setRootInNewDocument(true);
+			 
+			assertion = decrypter.decrypt(encryptedAssertion);
+			
+			List<Attribute> la = assertion.getAttributeStatements().get(0).getAttributes();
+			for (Attribute aa: la) {							
+				String attributeValue = "";
+				for (AttributeStatement attributeStatement : assertion.getAttributeStatements()) {
+					List<Attribute> attributes = attributeStatement.getAttributes();
+					for (Attribute attribute : attributes) {
+						if (aa.getName().equals(attribute.getName())) {
+							attributeValue = attribute.getAttributeValues().get(0).getDOM().getTextContent();
+							break;
+						}
+					 }
+				}
+				result.put(aa.getName(), Arrays.asList(attributeValue));		
+			}
+	
+		} catch (Exception e) {
+			//log.error("Error in the decryption of encrypted assertion: "+e);
+			throw e;
+		}
+
+		return result;
+	}
+	
+	public void loadEncryptedXmlFromBase64(String SAMLResponse) throws Exception {
+		Base64 base64 = new Base64();
+		byte[] decodedResponse = base64.decode(SAMLResponse);
+		String decodedS = new String(decodedResponse);
+		loadXml(decodedS);
+		encryptedResponse = (org.opensaml.saml.saml2.core.Response) unmarshall(decodedS);
+	}
+	
+    private XMLObject unmarshall(String samlResponse) throws Exception {
+        BasicParserPool parser = new BasicParserPool();
+        parser.setNamespaceAware(true);
+        parser.initialize();
+
+        StringReader reader = new StringReader(samlResponse);
+
+        Document doc = parser.parse(reader);
+        Element samlElement = doc.getDocumentElement();
+ 
+        InitializationService.initialize();
+        Unmarshaller unmarshaller = XMLObjectProviderRegistrySupport.getUnmarshallerFactory().getUnmarshaller(samlElement);
+        if (unmarshaller == null) {
+        		//log.error("Error in unmarshall SAML response, unmarshaller is null.");
+            throw new Exception("Failed to unmarshall SAML response");
+        }
+
+        return unmarshaller.unmarshall(samlElement);
+    }
+	
+
 }

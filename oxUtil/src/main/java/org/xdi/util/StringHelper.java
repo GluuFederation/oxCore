@@ -524,4 +524,34 @@ public final class StringHelper {
 		return string.trim();
 	}
 
+	/**
+	 * Sanitize input strings for LDAP operations.
+	 * {@link https://www.owasp.org/index.php/LDAP_injection}
+	 * @param string String to sanitize
+	 * @return string Sanitized string.
+	 */
+	public static String sanitizeLdapInput(String string) {
+	    if(string != null || !isEmpty(string)) {
+            StringBuilder out = new StringBuilder();
+            char current;
+
+            if (string == null || ("".equals(string))) return "";
+            for (int i = 0; i < string.length(); i++) {
+                current = string.charAt(i);
+                if (!((current == '(') ||
+                        (current == ')') ||
+                        (current == '<') ||
+                        (current == '>') ||
+                        (current == '=') ||
+                        (current == '\\') ||
+                        (current == '*')))
+                    out.append(current);
+            }
+            return out.toString();
+        } else {
+	        return string;
+        }
+
+	}
+	
 }

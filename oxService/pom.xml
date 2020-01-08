@@ -55,6 +55,11 @@
             <artifactId>oxcore-persistence-couchbase</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>oxcore-persistence-hybrid</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>oxcore-util</artifactId>

@@ -28,8 +28,8 @@
 		<uel-api.version>2.2.1-b04</uel-api.version>
 		<uel-impl.version>2.2.1-b05</uel-impl.version>
 
-		<jackson.version>2.10.1</jackson.version>
-		<jackson.databind.version>2.10.1</jackson.databind.version>
+		<jackson.version>2.10.3</jackson.version>
+		<jackson.databind.version>2.10.3</jackson.databind.version>
 		<log4j.version>2.11.2</log4j.version>
 		<slf4j.version>1.7.26</slf4j.version>
 
@@ -41,17 +41,17 @@
 			<id>central</id>
 			<name>Maven Repository Switchboard</name>
 			<layout>default</layout>
-			<url>http://repo1.maven.org/maven2</url>
+			<url>https://repo1.maven.org/maven2</url>
 		</repository>
 		<repository>
 			<id>repository.jboss.org</id>
 			<name>JBoss Repository</name>
-			<url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+			<url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
 		</repository>
 		<repository>
 			<id>gluu</id>
 			<name>Gluu repository</name>
-			<url>http://ox.gluu.org/maven</url>
+			<url>https://ox.gluu.org/maven</url>
 		</repository>
 	</repositories>
 
@@ -77,6 +77,7 @@
 		<module>oxModel</module>
 		<module>oxSaml</module>
 		<module>core-cache</module>
+		<module>core-document-store</module>
 		<module>core-standalone</module>
 		<module>oxService</module>
 		<module>server</module>
@@ -325,6 +326,19 @@
 				<artifactId>metrics-core</artifactId>
 				<version>4.0.5</version>
 			</dependency>
+
+		    <!-- Jackrabbit content repository --> 
+		    <dependency> 
+		        <groupId>javax.jcr</groupId> 
+		        <artifactId>jcr</artifactId> 
+		        <version>2.0</version> 
+		    </dependency> 
+	
+		    <dependency>
+		        <groupId>org.apache.jackrabbit</groupId>
+		        <artifactId>jackrabbit-core</artifactId>
+		        <version>2.21.0</version>
+		    </dependency>
 
 			<!-- Jetty -->
 			<dependency>

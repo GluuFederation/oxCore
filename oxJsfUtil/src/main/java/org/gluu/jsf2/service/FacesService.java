@@ -15,6 +15,9 @@ import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import javax.faces.context.PartialViewContext;
+import javax.faces.component.UIViewRoot;
+
 import org.gluu.jsf2.exception.RedirectException;
 
 /**
@@ -114,14 +117,36 @@ public class FacesService {
 		return builder.toString();
 	}
 
-	public void renderView(String viewId) {
-		final FacesContext fc = FacesContext.getCurrentInstance();
-		final ViewHandler viewHandler = fc.getApplication().getViewHandler();
+    public void renderView(String viewId) {
+        final FacesContext ctx = FacesContext.getCurrentInstance();
+        final ViewHandler viewHandler = ctx.getApplication().getViewHandler();
 
-		fc.setViewRoot(viewHandler.createView(fc, viewId));
-		fc.getPartialViewContext().setRenderAll(true);
-		fc.renderResponse();
-	}
+        UIViewRoot newRoot = viewHandler.createView(ctx, viewId); 
+        updateRenderTargets(ctx, viewId);
+        ctx.setViewRoot(newRoot);
+        clearViewMapIfNecessary(ctx, viewId);
+
+        ctx.renderResponse();
+    }
+    
+    private void updateRenderTargets(FacesContext ctx, String newId) {
+        if (ctx.getViewRoot() == null || !ctx.getViewRoot().getViewId().equals(newId)) {
+            PartialViewContext pctx = ctx.getPartialViewContext();
+            if (!pctx.isRenderAll()) {
+                pctx.setRenderAll(true);
+            }
+        }
+    }
+    private void clearViewMapIfNecessary(FacesContext facesContext, String newId) {
+        UIViewRoot root = facesContext.getViewRoot();
+
+        if (root != null && !root.getViewId().equals(newId)) {
+            Map<String, Object> viewMap = root.getViewMap(false);
+            if (viewMap != null) {
+                viewMap.clear();
+            }
+        }
+    }
 
 	public void navigateToView(String fromAction, String outcome, Map<String, Object> parameters) {
 		final FacesContext fc = FacesContext.getCurrentInstance();

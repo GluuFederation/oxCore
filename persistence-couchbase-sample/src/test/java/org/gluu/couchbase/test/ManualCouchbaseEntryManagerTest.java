@@ -48,7 +48,6 @@ public class ManualCouchbaseEntryManagerTest {
 
             final JsonDocument lookup2 = manager.getOperationService().getConnectionProvider().getBucketMapping("sessions").getBucket().get(key);
             System.out.println("expiry after update: " + lookup2.expiry());
-
         } finally {
             manager.destroy();
         }
@@ -71,7 +70,6 @@ public class ManualCouchbaseEntryManagerTest {
 
             final SessionId fromPersistence2 = manager.find(SessionId.class, sessionId.getDn());
             System.out.println(fromPersistence2.getJwt());
-
         } finally {
             manager.destroy();
         }

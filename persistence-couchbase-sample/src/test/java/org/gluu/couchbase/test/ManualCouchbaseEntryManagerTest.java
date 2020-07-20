@@ -29,7 +29,7 @@ public class ManualCouchbaseEntryManagerTest {
         }
     }
 
-    @Test(enabled = false) // manual
+    @Test(enabled = true) // manual
     public void sampleSessionId() throws IOException, SearchException {
         CouchbaseEntryManager manager = createCouchbaseEntryManager();
 
@@ -47,29 +47,8 @@ public class ManualCouchbaseEntryManagerTest {
             manager.merge(sessionId);
 
             final JsonDocument lookup2 = manager.getOperationService().getConnectionProvider().getBucketMapping("sessions").getBucket().get(key);
-            System.out.println("expiry after update: " + lookup2.expiry());
-        } finally {
-            manager.destroy();
-        }
-    }
+            System.out.println("expiry after udpate: " + lookup2.expiry());
 
-    @Test(enabled = false) // manual
-    public void replaceSessionIdByPersist() throws IOException {
-        CouchbaseEntryManager manager = createCouchbaseEntryManager();
-
-        try {
-            SessionId sessionId = createSessionId();
-            sessionId.setJwt("jwt1");
-            manager.persist(sessionId);
-
-            final SessionId fromPersistence1 = manager.find(SessionId.class, sessionId.getDn());
-            System.out.println(fromPersistence1.getJwt());
-
-            sessionId.setJwt("jwt2");
-            manager.persist(sessionId);
-
-            final SessionId fromPersistence2 = manager.find(SessionId.class, sessionId.getDn());
-            System.out.println(fromPersistence2.getJwt());
         } finally {
             manager.destroy();
         }

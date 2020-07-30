@@ -54,6 +54,29 @@ public class ManualCouchbaseEntryManagerTest {
         }
     }
 
+    @Test(enabled = true) // manual
+    public void replaceSessionIdByPersist() throws IOException {
+        CouchbaseEntryManager manager = createCouchbaseEntryManager();
+
+        try {
+            SessionId sessionId = createSessionId();
+            sessionId.setJwt("jwt1");
+            manager.persist(sessionId);
+
+            final SessionId fromPersistence1 = manager.find(SessionId.class, sessionId.getDn());
+            System.out.println(fromPersistence1.getJwt());
+
+            sessionId.setJwt("jwt2");
+            manager.persist(sessionId);
+
+            final SessionId fromPersistence2 = manager.find(SessionId.class, sessionId.getDn());
+            System.out.println(fromPersistence2.getJwt());
+
+        } finally {
+            manager.destroy();
+        }
+    }
+
     private SessionId createSessionId() {
         SessionId sessionId = new SessionId();
         sessionId.setId(UUID.randomUUID().toString());

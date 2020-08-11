@@ -29,7 +29,7 @@ public class ManualCouchbaseEntryManagerTest {
         }
     }
 
-    @Test(enabled = true) // manual
+    @Test(enabled = false) // manual
     public void sampleSessionId() throws IOException, SearchException {
         CouchbaseEntryManager manager = createCouchbaseEntryManager();
 
@@ -54,7 +54,7 @@ public class ManualCouchbaseEntryManagerTest {
         }
     }
 
-    @Test(enabled = true) // manual
+    @Test(enabled = false) // manual
     public void replaceSessionIdByPersist() throws IOException {
         CouchbaseEntryManager manager = createCouchbaseEntryManager();
 

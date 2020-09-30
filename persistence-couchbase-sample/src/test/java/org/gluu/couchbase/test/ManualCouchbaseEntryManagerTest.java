@@ -45,18 +45,37 @@ public class ManualCouchbaseEntryManagerTest {
             final String key = "sessions_" + sessionId.getId();
             System.out.println("Key: " + key + ", ttl:" + sessionId.getTtl());
 
-            Bucket sessionBucket = manager.getOperationService().getConnectionProvider().getBucketMapping("sessions").getBucket();
-            final JsonDocument lookup = sessionBucket.get(key);
+            final JsonDocument lookup = manager.getOperationService().getConnectionProvider().getBucketMapping("sessions").getBucket().get(key);
             System.out.println("expiry: " + lookup.expiry());
-
-            DocumentFragment<Lookup> ttl = sessionBucket.lookupIn(key).get("$document.exptime", new SubdocOptionsBuilder().xattr(true)).execute();
-            System.out.println("ttl: " + ttl.content("$document.exptime"));
 
             updateSession(sessionId);
             manager.merge(sessionId);
 
             final JsonDocument lookup2 = manager.getOperationService().getConnectionProvider().getBucketMapping("sessions").getBucket().get(key);
             System.out.println("expiry after update: " + lookup2.expiry());
+
+        } finally {
+            manager.destroy();
+        }
+    }
+
+    @Test(enabled = false) // manual
+    public void replaceSessionIdByPersist() throws IOException {
+        CouchbaseEntryManager manager = createCouchbaseEntryManager();
+
+        try {
+            SessionId sessionId = createSessionId();
+            sessionId.setJwt("jwt1");
+            manager.persist(sessionId);
+
+            final SessionId fromPersistence1 = manager.find(SessionId.class, sessionId.getDn());
+            System.out.println(fromPersistence1.getJwt());
+
+            sessionId.setJwt("jwt2");
+            manager.persist(sessionId);
+
+            final SessionId fromPersistence2 = manager.find(SessionId.class, sessionId.getDn());
+            System.out.println(fromPersistence2.getJwt());
 
         } finally {
             manager.destroy();

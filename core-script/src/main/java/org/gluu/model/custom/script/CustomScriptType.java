@@ -31,6 +31,8 @@ import org.gluu.model.custom.script.type.persistence.DummyPeristenceType;
 import org.gluu.model.custom.script.type.persistence.PersistenceType;
 import org.gluu.model.custom.script.type.postauthn.DummyPostAuthnType;
 import org.gluu.model.custom.script.type.postauthn.PostAuthnType;
+import org.gluu.model.custom.script.type.revoke.DummyRevokeTokenType;
+import org.gluu.model.custom.script.type.revoke.RevokeTokenType;
 import org.gluu.model.custom.script.type.scim.DummyScimType;
 import org.gluu.model.custom.script.type.scim.ScimType;
 import org.gluu.model.custom.script.type.scope.DummyDynamicScopeType;
@@ -83,6 +85,7 @@ public enum CustomScriptType implements AttributeEnum {
     SCIM("scim", "SCIM", ScimType.class, CustomScript.class, "ScimEventHandler", new DummyScimType()),
     CIBA_END_USER_NOTIFICATION("ciba_end_user_notification", "CIBA End User Notification", EndUserNotificationType.class,
             CustomScript.class, "EndUserNotification", new DummyEndUserNotificationType()),
+    REVOKE_TOKEN("revoke_token", "Revoke Token", RevokeTokenType.class, CustomScript.class, "RevokeToken", new DummyRevokeTokenType()),
     PERSISTENCE_EXTENSION("persistence_extension", "Persistence Extension", PersistenceType.class, CustomScript.class, "PersistenceExtension", new DummyPeristenceType()),
     IDP("idp", "Idp Extension", IdpType.class, CustomScript.class, "IdpExtension", new DummyIdpType());
 

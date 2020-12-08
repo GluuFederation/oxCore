@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 
 import org.gluu.persist.PersistenceEntryManagerFactory;
@@ -47,6 +48,14 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
     @PostConstruct
     public void create() {
     	this.builder = DefaultCouchbaseEnvironment.builder().operationTracingEnabled(false);
+    }
+
+    @PreDestroy
+    public void destory() {
+    	if (couchbaseEnvironment != null) {
+    		boolean result = couchbaseEnvironment.shutdown();
+    		LOG.info("Couchbase environment are destroyed with result {}", result);
+    	}
     }
 
 	@Override

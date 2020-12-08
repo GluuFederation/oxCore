@@ -692,7 +692,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
 
         if (connectionProvider != null) {
             try {
-                connectionProvider.destory();
+                connectionProvider.destroy();
             } catch (Exception ex) {
                 LOG.error("Failed to destory provider correctly");
                 result = false;

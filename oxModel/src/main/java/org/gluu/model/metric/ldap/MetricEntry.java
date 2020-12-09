@@ -10,6 +10,7 @@ import org.gluu.model.metric.MetricType;
 import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.DN;
 import org.gluu.persist.annotation.DataEntry;
+import org.gluu.persist.annotation.Expiration;
 import org.gluu.persist.annotation.ObjectClass;
 
 import java.util.Date;
@@ -49,6 +50,10 @@ public class MetricEntry {
 
     @AttributeName(name = "exp")
     private Date expirationDate;
+
+    @Expiration
+    private Integer ttl;
+
     @AttributeName(name = "del")
     private boolean deletable = true;
 
@@ -133,7 +138,15 @@ public class MetricEntry {
         this.expirationDate = expirationDate;
     }
 
-    public boolean isDeletable() {
+    public Integer getTtl() {
+		return ttl;
+	}
+
+	public void setTtl(Integer ttl) {
+		this.ttl = ttl;
+	}
+
+	public boolean isDeletable() {
         return deletable;
     }
 

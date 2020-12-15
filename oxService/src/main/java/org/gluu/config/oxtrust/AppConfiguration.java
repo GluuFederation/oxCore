@@ -166,6 +166,8 @@ public class AppConfiguration implements Configuration, Serializable {
 
     private Boolean useLocalCache = false;
 
+    private boolean passIdTokenHintToLogoutRedirectUri = false;
+
     public ScimProperties getScimProperties() {
         return scimProperties;
     }
@@ -963,4 +965,11 @@ public class AppConfiguration implements Configuration, Serializable {
         this.enableUpdateNotification = enableUpdateNotification;
     }
 
+    public boolean isPassIdTokenHintToLogoutRedirectUri() {
+        return passIdTokenHintToLogoutRedirectUri;
+    }
+
+    public void setPassIdTokenHintToLogoutRedirectUri(boolean passIdTokenHintToLogoutRedirectUri) {
+        this.passIdTokenHintToLogoutRedirectUri = passIdTokenHintToLogoutRedirectUri;
+    }
 }

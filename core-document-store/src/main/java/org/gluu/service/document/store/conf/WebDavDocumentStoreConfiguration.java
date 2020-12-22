@@ -1,8 +1,8 @@
 package org.gluu.service.document.store.conf;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.io.Serializable;
 
 /**
  * @author Yuriy Movchan on 04/10/2020
@@ -71,7 +71,7 @@ public class WebDavDocumentStoreConfiguration implements Serializable {
 	@Override
 	public String toString() {
 		return "WebDavDocumentStoreConfiguration [serverUrl=" + serverUrl + ", workspaceName=" + workspaceName + ", connectionTimeout="
-				+ connectionTimeout + ", userId=" + userId + ", password=" + password + ", decryptedPassword=" + decryptedPassword + "]";
+				+ connectionTimeout + ", userId=" + userId + "]";
 	}
 
 }

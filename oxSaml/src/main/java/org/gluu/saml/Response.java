@@ -92,7 +92,7 @@ public class Response {
     public void loadXmlFromBase64(String response) throws ParserConfigurationException, SAXException, IOException {
         Base64 base64 = new Base64();
         byte[] decodedResponse = base64.decode(response);
-        String decodedS = new String(decodedResponse);
+        String decodedS = new String(decodedResponse, "UTF-8");
         loadXml(decodedS);
     }
 

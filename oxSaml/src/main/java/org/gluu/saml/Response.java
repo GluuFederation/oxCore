@@ -37,6 +37,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -50,11 +51,13 @@ import org.xml.sax.SAXException;
  * @author Yuriy Movchan Date: 24/04/2014
  */
 public class Response {
+	private static final Logger log = Logger.getLogger(Response.class);
+
 	private final static SimpleNamespaceContext NAMESPACES;
-        
-        public final static String SAML_RESPONSE_STATUS_SUCCESS = "urn:oasis:names:tc:SAML:2.0:status:Success"; 
-        public final static String SAML_RESPONSE_STATUS_RESPONDER = "urn:oasis:names:tc:SAML:2.0:status:Responder";
-        public final static String SAML_RESPONSE_STATUS_AUTHNFAILED = "urn:oasis:names:tc:SAML:2.0:status:AuthnFailed";
+
+	public final static String SAML_RESPONSE_STATUS_SUCCESS = "urn:oasis:names:tc:SAML:2.0:status:Success";
+	public final static String SAML_RESPONSE_STATUS_RESPONDER = "urn:oasis:names:tc:SAML:2.0:status:Responder";
+	public final static String SAML_RESPONSE_STATUS_AUTHNFAILED = "urn:oasis:names:tc:SAML:2.0:status:AuthnFailed";
         
 	static {
 		HashMap<String, String> preferences = new HashMap<String, String>() {
@@ -109,6 +112,7 @@ public class Response {
 		}
 
 		X509Certificate cert = samlSettings.getCertificate();
+
 		DOMValidateContext ctx = new DOMValidateContext(cert.getPublicKey(), nodes.item(0));
 		XMLSignatureFactory sigF = XMLSignatureFactory.getInstance("DOM");
 		XMLSignature xmlSignature = sigF.unmarshalXMLSignature(ctx);
@@ -116,6 +120,29 @@ public class Response {
 		return xmlSignature.validate(ctx);
 	}
 
+	public boolean isValidNew() throws Exception {
+		NodeList nodes = xmlDoc.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
+
+		if (nodes == null || nodes.getLength() == 0) {
+			throw new Exception("Can't find signature in document.");
+		}
+
+		if (setIdAttributeExists()) {
+			tagIdAttributes(xmlDoc);
+		}
+
+		X509Certificate cert = samlSettings.getCertificate();
+
+        // It's do initialization only on first call
+		org.apache.xml.security.Init.init();
+
+		Element sigElement = (Element) nodes.item(0);
+        org.apache.xml.security.signature.XMLSignature signature =
+                new org.apache.xml.security.signature.XMLSignature(sigElement, null);        
+
+		return signature.checkSignatureValue(cert);
+    }
+    
 	public boolean isAuthnFailed() throws Exception {
             XPath xPath = XPathFactory.newInstance().newXPath();
 
@@ -218,4 +245,5 @@ public class Response {
 
 		transformer.transform(new DOMSource(xmlDoc), new StreamResult(new OutputStreamWriter(out, "UTF-8")));
 	}
+	
 }

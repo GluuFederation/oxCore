@@ -8,6 +8,7 @@ package org.gluu.saml;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
@@ -89,15 +90,15 @@ public class Response {
 		fty.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 
 		DocumentBuilder builder = fty.newDocumentBuilder();
-		ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes());
-		xmlDoc = builder.parse(bais);
+		InputStream is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+		xmlDoc = builder.parse(is);
 	}
 
 	public void loadXmlFromBase64(String response) throws ParserConfigurationException, SAXException, IOException {
 		Base64 base64 = new Base64();
 		byte[] decodedResponse = base64.decode(response);
-		String decodedS = new String(decodedResponse, "UTF-8");
-		loadXml(decodedS);
+		String decoded = new String(decodedResponse, "UTF-8");
+		loadXml(decoded);
 	}
 
 	public boolean isValid() throws Exception {

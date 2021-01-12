@@ -185,80 +185,80 @@ public abstract class LoggerService {
     }
 
     private void updateAppendersAndLogLevel(LoggingLayoutType loggingLayout, Level level) {
-    	boolean runLoggersUpdate = false;
-    	int loggerConfigUpdates = 0;
-    	int appenderConfigUpdates = 0;
-        LoggerContext ctx = LoggerContext.getContext(false);
-
-        AbstractConfiguration config = (AbstractConfiguration) ctx.getConfiguration();
-        for (Entry<String, LoggerConfig> loggerConfigEntry : config.getLoggers().entrySet()) {
-        	LoggerConfig loggerConfig = loggerConfigEntry.getValue();
-        	log.trace("Updating log configuration '{}'", loggerConfig.getName());
-
-			if (!loggerConfig.getLevel().equals(level)) {
-				loggerConfig.setLevel(level);
-	        	log.trace("Updating log level in configuration '{}' to '{}'", loggerConfig.getName(), level);
-                runLoggersUpdate = true;
-                loggerConfigUpdates++;
-			}
-
-			for (Map.Entry<String, Appender> appenderEntry : loggerConfig.getAppenders().entrySet()) {
-	        	Appender appender = appenderEntry.getValue();
-	        	log.trace("Updating appender '{}'", appender.getName());
-
-	        	Layout<?> layout = appender.getLayout();
-	            if (loggingLayout == LoggingLayoutType.TEXT) {
-	            	layout = PatternLayout.newBuilder().withPattern("%d %-5p [%t] [%C{6}] (%F:%L) - %m%n").build();
-	            } else if (loggingLayout == LoggingLayoutType.JSON) {
-	            	layout = JsonLayout.createDefaultLayout();
-	            }
-	
-	        	if (appender instanceof RollingFileAppender) {
-	                RollingFileAppender rollingFile = (RollingFileAppender) appender;
-	                if (rollingFile.getLayout().getClass().isAssignableFrom(layout.getClass())) {
-	                	continue;
-	                }
-	                RollingFileAppender newFileAppender = RollingFileAppender.newBuilder()
-	                        .setLayout(layout)
-	                        .withStrategy(rollingFile.getManager().getRolloverStrategy())
-	                        .withPolicy(rollingFile.getTriggeringPolicy())
-	                        .withFileName(rollingFile.getFileName())
-	                        .withFilePattern(rollingFile.getFilePattern())
-	                        .setName(rollingFile.getName())
-	                        .build();
-	                newFileAppender.start();
-	                appender.stop();
-	                loggerConfig.removeAppender(appenderEntry.getKey());
-	                loggerConfig.addAppender(newFileAppender, null, null);
-
-	                runLoggersUpdate = true;
-	                appenderConfigUpdates++;
-	        	} else if (appender instanceof ConsoleAppender) {
-	                ConsoleAppender consoleAppender = (ConsoleAppender) appender;
-	                if (consoleAppender.getLayout().getClass().isAssignableFrom(layout.getClass())) {
-	                	continue;
-	                }
-
-	                ConsoleAppender newConsoleAppender = ConsoleAppender.newBuilder()
-	                        .setLayout(layout)
-	                        .setTarget(consoleAppender.getTarget())
-	                        .setName(consoleAppender.getName())
-	                        .build();
-	                newConsoleAppender.start();
-	                appender.stop();
-	                loggerConfig.removeAppender(appenderEntry.getKey());
-	                loggerConfig.addAppender(newConsoleAppender, null, null);
-
-	                runLoggersUpdate = true;
-	                appenderConfigUpdates++;
-	            }
-	        }
-        }
-
-        if (runLoggersUpdate) {
-        	log.trace("Trigger loggers update after '{}' updates", loggerConfigUpdates + appenderConfigUpdates);
-        	ctx.updateLoggers();
-        }
+//    	boolean runLoggersUpdate = false;
+//    	int loggerConfigUpdates = 0;
+//    	int appenderConfigUpdates = 0;
+//        LoggerContext ctx = LoggerContext.getContext(false);
+//
+//        AbstractConfiguration config = (AbstractConfiguration) ctx.getConfiguration();
+//        for (Entry<String, LoggerConfig> loggerConfigEntry : config.getLoggers().entrySet()) {
+//        	LoggerConfig loggerConfig = loggerConfigEntry.getValue();
+//        	log.trace("Updating log configuration '{}'", loggerConfig.getName());
+//
+//			if (!loggerConfig.getLevel().equals(level)) {
+//				loggerConfig.setLevel(level);
+//	        	log.trace("Updating log level in configuration '{}' to '{}'", loggerConfig.getName(), level);
+//                runLoggersUpdate = true;
+//                loggerConfigUpdates++;
+//			}
+//
+//			for (Map.Entry<String, Appender> appenderEntry : loggerConfig.getAppenders().entrySet()) {
+//	        	Appender appender = appenderEntry.getValue();
+//	        	log.trace("Updating appender '{}'", appender.getName());
+//
+//	        	Layout<?> layout = appender.getLayout();
+//	            if (loggingLayout == LoggingLayoutType.TEXT) {
+//	            	layout = PatternLayout.newBuilder().withPattern("%d %-5p [%t] [%C{6}] (%F:%L) - %m%n").build();
+//	            } else if (loggingLayout == LoggingLayoutType.JSON) {
+//	            	layout = JsonLayout.createDefaultLayout();
+//	            }
+//
+//	        	if (appender instanceof RollingFileAppender) {
+//	                RollingFileAppender rollingFile = (RollingFileAppender) appender;
+//	                if (rollingFile.getLayout().getClass().isAssignableFrom(layout.getClass())) {
+//	                	continue;
+//	                }
+//	                RollingFileAppender newFileAppender = RollingFileAppender.newBuilder()
+//	                        .setLayout(layout)
+//	                        .withStrategy(rollingFile.getManager().getRolloverStrategy())
+//	                        .withPolicy(rollingFile.getTriggeringPolicy())
+//	                        .withFileName(rollingFile.getFileName())
+//	                        .withFilePattern(rollingFile.getFilePattern())
+//	                        .setName(rollingFile.getName())
+//	                        .build();
+//	                newFileAppender.start();
+//	                appender.stop();
+//	                loggerConfig.removeAppender(appenderEntry.getKey());
+//	                loggerConfig.addAppender(newFileAppender, null, null);
+//
+//	                runLoggersUpdate = true;
+//	                appenderConfigUpdates++;
+//	        	} else if (appender instanceof ConsoleAppender) {
+//	                ConsoleAppender consoleAppender = (ConsoleAppender) appender;
+//	                if (consoleAppender.getLayout().getClass().isAssignableFrom(layout.getClass())) {
+//	                	continue;
+//	                }
+//
+//	                ConsoleAppender newConsoleAppender = ConsoleAppender.newBuilder()
+//	                        .setLayout(layout)
+//	                        .setTarget(consoleAppender.getTarget())
+//	                        .setName(consoleAppender.getName())
+//	                        .build();
+//	                newConsoleAppender.start();
+//	                appender.stop();
+//	                loggerConfig.removeAppender(appenderEntry.getKey());
+//	                loggerConfig.addAppender(newConsoleAppender, null, null);
+//
+//	                runLoggersUpdate = true;
+//	                appenderConfigUpdates++;
+//	            }
+//	        }
+//        }
+//
+//        if (runLoggersUpdate) {
+//        	log.trace("Trigger loggers update after '{}' updates", loggerConfigUpdates + appenderConfigUpdates);
+//        	ctx.updateLoggers();
+//        }
     }
     
     public abstract boolean isDisableJdkLogger();

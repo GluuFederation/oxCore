@@ -43,6 +43,7 @@ import org.gluu.model.custom.script.type.spontaneous.DummySpontaneousScopeType;
 import org.gluu.model.custom.script.type.spontaneous.SpontaneousScopeType;
 import org.gluu.model.custom.script.type.uma.*;
 import org.gluu.model.custom.script.type.user.*;
+import org.gluu.model.custom.script.type.token.*;
 import org.gluu.persist.annotation.AttributeEnum;
 
 import java.util.HashMap;
@@ -87,7 +88,8 @@ public enum CustomScriptType implements AttributeEnum {
             CustomScript.class, "EndUserNotification", new DummyEndUserNotificationType()),
     REVOKE_TOKEN("revoke_token", "Revoke Token", RevokeTokenType.class, CustomScript.class, "RevokeToken", new DummyRevokeTokenType()),
     PERSISTENCE_EXTENSION("persistence_extension", "Persistence Extension", PersistenceType.class, CustomScript.class, "PersistenceExtension", new DummyPeristenceType()),
-    IDP("idp", "Idp Extension", IdpType.class, CustomScript.class, "IdpExtension", new DummyIdpType());
+    IDP("idp", "Idp Extension", IdpType.class, CustomScript.class, "IdpExtension", new DummyIdpType()),
+    UPDATE_TOKEN("update_token", "Update Token", UpdateTokenType.class, CustomScript.class, "UpdateToken", new DummyUpdateTokenType());
 
     private String value;
     private String displayName;

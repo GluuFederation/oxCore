@@ -68,32 +68,52 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
             String sslTrustStorePin = couchbaseConnectionProperties.getProperty("ssl.trustStore.pin");
 
             builder.sslEnabled(true).sslTruststoreFile(sslTrustStoreFile).sslTruststorePassword(sslTrustStorePin);
+        	LOG.info("Configuring builder to enable SSL support");
         } else {
         	builder.sslEnabled(false);
+        	LOG.info("Configuring builder to disable SSL support");
         }
         
         String connectTimeoutString = couchbaseConnectionProperties.getProperty("connection.connect-timeout");
         if (StringHelper.isNotEmpty(connectTimeoutString)) {
         	int connectTimeout = Integer.valueOf(connectTimeoutString);
         	builder.connectTimeout(connectTimeout);
+        	LOG.info("Configuring builder to override connectTimeout from properties");
         }
 
         String operationTracingEnabledString = couchbaseConnectionProperties.getProperty("connection.operation-tracing-enabled");
         if (StringHelper.isNotEmpty(operationTracingEnabledString)) {
         	boolean operationTracingEnabled = Boolean.valueOf(operationTracingEnabledString);
         	builder.operationTracingEnabled(operationTracingEnabled);
+        	LOG.info("Configuring builder to override operationTracingEnabled from properties");
         }
 
         String mutationTokensEnabledString = couchbaseConnectionProperties.getProperty("connection.mutation-tokens-enabled");
         if (StringHelper.isNotEmpty(mutationTokensEnabledString)) {
         	boolean mutationTokensEnabled = Boolean.valueOf(mutationTokensEnabledString);
         	builder.mutationTokensEnabled(mutationTokensEnabled);
+        	LOG.info("Configuring builder to override mutationTokensEnabled from properties");
         }
 
         String computationPoolSizeString = couchbaseConnectionProperties.getProperty("connection.computation-pool-size");
         if (StringHelper.isNotEmpty(computationPoolSizeString)) {
         	int computationPoolSize = Integer.valueOf(computationPoolSizeString);
         	builder.computationPoolSize(computationPoolSize);
+        	LOG.info("Configuring builder to override computationPoolSize from properties");
+        }
+
+        String keepAliveTimeoutString = couchbaseConnectionProperties.getProperty("connection.keep-alive-timeout");
+        if (StringHelper.isNotEmpty(keepAliveTimeoutString)) {
+        	long keepAliveTimeout = Integer.valueOf(keepAliveTimeoutString);
+        	builder.keepAliveTimeout(keepAliveTimeout);
+        	LOG.info("Configuring builder to override keepAliveTimeout from properties");
+        }
+
+        String keepAliveIntervalString = couchbaseConnectionProperties.getProperty("connection.keep-alive-interval");
+        if (StringHelper.isNotEmpty(keepAliveIntervalString)) {
+        	long keepAliveInterval = Integer.valueOf(keepAliveIntervalString);
+        	builder.keepAliveInterval(keepAliveInterval);
+        	LOG.info("Configuring builder to override keepAliveInterval from properties");
         }
 
         this.couchbaseEnvironment = builder.build();

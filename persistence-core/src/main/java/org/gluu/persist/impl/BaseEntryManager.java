@@ -6,10 +6,34 @@
 
 package org.gluu.persist.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import org.apache.commons.codec.binary.Base64;
 import org.gluu.persist.PersistenceEntryManager;
-import org.gluu.persist.annotation.*;
+import org.gluu.persist.annotation.AttributeEnum;
+import org.gluu.persist.annotation.AttributeName;
+import org.gluu.persist.annotation.AttributesList;
+import org.gluu.persist.annotation.CustomObjectClass;
+import org.gluu.persist.annotation.DN;
+import org.gluu.persist.annotation.DataEntry;
+import org.gluu.persist.annotation.Expiration;
+import org.gluu.persist.annotation.JsonObject;
+import org.gluu.persist.annotation.ObjectClass;
+import org.gluu.persist.annotation.SchemaEntry;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.exception.InvalidArgumentException;
 import org.gluu.persist.exception.MappingException;
@@ -29,11 +53,7 @@ import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.Map.Entry;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Abstract Entry Manager
@@ -193,7 +213,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 		Object dnValue = getDNValue(entry, entryClass);
 
-		Integer expirationValue = getExpirationValue(entry, entryClass, true);
+		Integer expirationValue = getExpirationValue(entry, entryClass);
 
 		List<AttributeData> attributesToPersist = getAttributesListForPersist(entry, propertiesAnnotations);
 		Map<String, AttributeData> attributesToPersistMap = getAttributesMap(attributesToPersist);
@@ -768,7 +788,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		return propertiesAnnotations.get(0).getPropertyName();
 	}
 
-	protected String getExpirationPropertyName(Class<?> entryClass, boolean ignoreOnUpdate) {
+	protected String getExpirationPropertyName(Class<?> entryClass) {
 		List<PropertyAnnotation> propertiesAnnotations = getEntryExpirationAnnotations(entryClass);
 		if (propertiesAnnotations.size() == 0) {
 			return null;
@@ -778,17 +798,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 			throw new MappingException("Entry should has only one property with annotation Expiration");
 		}
 
-        final PropertyAnnotation propertyAnnotation = propertiesAnnotations.get(0);
-
-		if (ignoreOnUpdate) {
-            Expiration expiration = (Expiration) ReflectHelper.getAnnotationByType(propertyAnnotation.getAnnotations(), Expiration.class);
-            if (expiration.ignoreDuringUpdate()) {
-                return null;
-            }
-        }
-
-
-		return propertyAnnotation.getPropertyName();
+		return propertiesAnnotations.get(0).getPropertyName();
 	}
 
 	protected <T> List<T> createEntities(Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations,
@@ -1737,13 +1747,9 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		return dnValue;
 	}
 
-    protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass) {
-	    return getExpirationValue(entry, entryClass, false);
-    }
-
-	protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass, boolean ignoreOnUpdate) {
+	protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass) {
 		// Check if entry has Expiration property
-		String expirationProperty = getExpirationPropertyName(entryClass, ignoreOnUpdate);
+		String expirationProperty = getExpirationPropertyName(entryClass);
 		
 		if (expirationProperty == null) {
 			// No entry expiration property

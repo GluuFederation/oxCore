@@ -24,6 +24,6 @@ public @interface Expiration {
      * (Optional) Specify that we ignore this Persistance attribute during update.
      * Defaults value is false.
      */
-    boolean ignoreDuringUpdate() default false;
+    boolean ignoreDuringUpdate() default true;
 
 }

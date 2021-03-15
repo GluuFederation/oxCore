@@ -6,34 +6,10 @@
 
 package org.gluu.persist.impl;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
 import org.gluu.persist.PersistenceEntryManager;
-import org.gluu.persist.annotation.AttributeEnum;
-import org.gluu.persist.annotation.AttributeName;
-import org.gluu.persist.annotation.AttributesList;
-import org.gluu.persist.annotation.CustomObjectClass;
-import org.gluu.persist.annotation.DN;
-import org.gluu.persist.annotation.DataEntry;
-import org.gluu.persist.annotation.Expiration;
-import org.gluu.persist.annotation.JsonObject;
-import org.gluu.persist.annotation.ObjectClass;
-import org.gluu.persist.annotation.SchemaEntry;
+import org.gluu.persist.annotation.*;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.exception.InvalidArgumentException;
 import org.gluu.persist.exception.MappingException;
@@ -53,7 +29,11 @@ import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Abstract Entry Manager
@@ -1750,6 +1730,9 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 	protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass, boolean merge) {
 		// Check if entry has Expiration property
 		PropertyAnnotation expirationProperty = getExpirationProperty(entryClass);
+		if (expirationProperty == null) {
+            return null;
+        }
 		String expirationPropertyName = expirationProperty.getPropertyName();
 
 		Expiration expirationAnnotation = (Expiration) ReflectHelper.getAnnotationByType(expirationProperty.getAnnotations(),

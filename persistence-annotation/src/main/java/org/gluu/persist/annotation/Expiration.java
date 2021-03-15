@@ -20,4 +20,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({ FIELD })
 @Retention(RUNTIME)
 public @interface Expiration {
+    /**
+     * (Optional) Specify that we ignore this Persistance attribute during update.
+     * Defaults value is false.
+     */
+    boolean ignoreDuringUpdate() default false;
+
 }

@@ -113,7 +113,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 		Object dnValue = getDNValue(entry, entryClass);
 
-		Integer expirationValue = getExpirationValue(entry, entryClass);
+		Integer expirationValue = getExpirationValue(entry, entryClass, false);
 
 		List<AttributeData> attributes = getAttributesListForPersist(entry, propertiesAnnotations);
 
@@ -213,7 +213,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 		Object dnValue = getDNValue(entry, entryClass);
 
-		Integer expirationValue = getExpirationValue(entry, entryClass);
+		Integer expirationValue = getExpirationValue(entry, entryClass, true);
 
 		List<AttributeData> attributesToPersist = getAttributesListForPersist(entry, propertiesAnnotations);
 		Map<String, AttributeData> attributesToPersistMap = getAttributesMap(attributesToPersist);
@@ -788,7 +788,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		return propertiesAnnotations.get(0).getPropertyName();
 	}
 
-	protected String getExpirationPropertyName(Class<?> entryClass) {
+	protected PropertyAnnotation getExpirationProperty(Class<?> entryClass) {
 		List<PropertyAnnotation> propertiesAnnotations = getEntryExpirationAnnotations(entryClass);
 		if (propertiesAnnotations.size() == 0) {
 			return null;
@@ -797,8 +797,8 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		if (propertiesAnnotations.size() > 1) {
 			throw new MappingException("Entry should has only one property with annotation Expiration");
 		}
-
-		return propertiesAnnotations.get(0).getPropertyName();
+		
+		return propertiesAnnotations.get(0);
 	}
 
 	protected <T> List<T> createEntities(Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations,
@@ -1747,17 +1747,25 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		return dnValue;
 	}
 
-	protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass) {
+	protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass, boolean merge) {
 		// Check if entry has Expiration property
-		String expirationProperty = getExpirationPropertyName(entryClass);
+		PropertyAnnotation expirationProperty = getExpirationProperty(entryClass);
+		String expirationPropertyName = expirationProperty.getPropertyName();
+
+		Expiration expirationAnnotation = (Expiration) ReflectHelper.getAnnotationByType(expirationProperty.getAnnotations(),
+				Expiration.class);
+
+		if (merge && expirationAnnotation.ignoreDuringUpdate()) {
+			return null;
+		}
 		
-		if (expirationProperty == null) {
+		if (expirationPropertyName == null) {
 			// No entry expiration property
 			return null;
 		}
 
 		// Get Expiration value
-		Getter expirationGetter = getGetter(entryClass, expirationProperty);
+		Getter expirationGetter = getGetter(entryClass, expirationPropertyName);
 		if (expirationGetter == null) {
 			throw new MappingException("Entry should has getter for property " + expirationGetter);
 		}

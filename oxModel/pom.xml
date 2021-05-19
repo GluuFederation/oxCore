@@ -16,11 +16,11 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-annotation</artifactId>
+			<artifactId>gluu-orm-annotation</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-model</artifactId>
+			<artifactId>gluu-orm-model</artifactId>
 		</dependency>
 
 		<dependency>

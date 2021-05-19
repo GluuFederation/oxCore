@@ -46,15 +46,15 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>oxcore-persistence-ldap</artifactId>
+			<artifactId>gluu-orm-ldap</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>oxcore-persistence-couchbase</artifactId>
+			<artifactId>gluu-orm-couchbase</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>oxcore-persistence-hybrid</artifactId>
+			<artifactId>gluu-orm-hybrid</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>

@@ -14,11 +14,11 @@
     <dependencies>
         <dependency>
             <groupId>org.gluu</groupId>
-            <artifactId>oxcore-persistence-ldap</artifactId>
+            <artifactId>gluu-orm-ldap</artifactId>
         </dependency>
         <dependency>
             <groupId>org.gluu</groupId>
-            <artifactId>oxcore-persistence-annotation</artifactId>
+            <artifactId>gluu-orm-annotation</artifactId>
         </dependency>
     </dependencies>
 

@@ -15,7 +15,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.gluu</groupId>
-			<artifactId>oxcore-persistence-annotation</artifactId>
+			<artifactId>gluu-orm-annotation</artifactId>
 		</dependency>
 		
 		<!-- Validation -->

@@ -46,7 +46,7 @@
 		<!-- Gluu -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>oxcore-persistence-core</artifactId>
+			<artifactId>gluu-orm-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

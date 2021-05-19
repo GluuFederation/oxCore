@@ -37,11 +37,11 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>oxcore-persistence-core</artifactId>
+			<artifactId>gluu-orm-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>oxcore-persistence-model</artifactId>
+			<artifactId>gluu-orm-model</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -85,7 +85,7 @@
 		<!-- Test -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>oxcore-persistence-ldap</artifactId>
+			<artifactId>gluu-orm-ldap</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

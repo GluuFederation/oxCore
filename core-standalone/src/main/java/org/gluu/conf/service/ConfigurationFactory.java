@@ -24,7 +24,7 @@ import org.gluu.service.cache.CacheConfiguration;
 import org.gluu.service.cache.InMemoryConfiguration;
 import org.gluu.util.StringHelper;
 import org.gluu.util.exception.ConfigurationException;
-import org.gluu.util.properties.FileConfiguration;
+import org.gluu.orm.util.properties.FileConfiguration;
 import org.gluu.util.security.PropertiesDecrypter;
 import org.gluu.util.security.StringEncrypter;
 import org.gluu.util.security.StringEncrypter.EncryptionException;

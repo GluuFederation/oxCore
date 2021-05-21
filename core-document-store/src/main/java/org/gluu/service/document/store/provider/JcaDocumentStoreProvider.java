@@ -342,7 +342,7 @@ public class JcaDocumentStoreProvider extends DocumentStoreProvider<JcaDocumentS
 	}
 
 	private String getNormalizedPath(String path) {
-		return path.replaceAll("\\\\",  "/");
+		return path.replace("\\",  "/").replace(" ", "");
 	}
 
 	private Node getOrCreateContentNode(String path, Session session) throws RepositoryException {

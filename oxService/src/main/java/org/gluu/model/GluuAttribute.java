@@ -28,7 +28,7 @@ import org.gluu.persist.model.base.Entry;
  * @author Javier Rojas Blum
  * @version May 2, 2019
  */
-@DataEntry(sortBy = { "displayName" })
+@DataEntry(sortBy = "displayName")
 @ObjectClass(value = "gluuAttribute")
 public class GluuAttribute extends Entry implements Serializable {
 

@@ -14,7 +14,7 @@ public class WebDavDocumentStoreConfiguration implements Serializable {
 
 	private String serverUrl; // http://localhost:8080
 	private String workspaceName;
-	private long connectionTimeout;
+	private int connectionTimeout;
 
 	private String userId;
 	private String password;
@@ -36,11 +36,11 @@ public class WebDavDocumentStoreConfiguration implements Serializable {
 		this.workspaceName = workspaceName;
 	}
 
-	public long getConnectionTimeout() {
+	public int getConnectionTimeout() {
 		return connectionTimeout;
 	}
 
-	public void setConnectionTimeout(long connectionTimeout) {
+	public void setConnectionTimeout(int connectionTimeout) {
 		this.connectionTimeout = connectionTimeout;
 	}
 

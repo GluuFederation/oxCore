@@ -309,12 +309,13 @@ public class JcaDocumentStoreProvider extends DocumentStoreProvider<JcaDocumentS
 
     private void decryptPassword(JcaDocumentStoreConfiguration jcaDocumentStoreConfiguration) {
         try {
-            String encryptedPassword = jcaDocumentStoreConfiguration.getPassword();
+        	String encryptedPassword = jcaDocumentStoreConfiguration.getPassword();
             if (StringUtils.isNotBlank(encryptedPassword)) {
             	jcaDocumentStoreConfiguration.setDecryptedPassword(stringEncrypter.decrypt(encryptedPassword));
                 log.trace("Decrypted JCA password successfully.");
             }
         } catch (StringEncrypter.EncryptionException ex) {
+        	jcaDocumentStoreConfiguration.setDecryptedPassword(jcaDocumentStoreConfiguration.getPassword());
             log.error("Error during JCA password decryption", ex);
         }
     }

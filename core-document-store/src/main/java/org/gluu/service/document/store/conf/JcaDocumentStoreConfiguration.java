@@ -18,6 +18,8 @@ public class JcaDocumentStoreConfiguration implements Serializable {
     
     private String userId;
     private String password;
+
+    @JsonIgnoreProperties
     private String decryptedPassword;
 
     public String getServerUrl() {

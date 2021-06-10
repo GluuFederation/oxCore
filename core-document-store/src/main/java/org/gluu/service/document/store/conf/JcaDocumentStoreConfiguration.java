@@ -1,5 +1,6 @@
 package org.gluu.service.document.store.conf;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
@@ -19,7 +20,7 @@ public class JcaDocumentStoreConfiguration implements Serializable {
     private String userId;
     private String password;
 
-    @JsonIgnoreProperties
+    @JsonIgnore
     private String decryptedPassword;
 
     public String getServerUrl() {

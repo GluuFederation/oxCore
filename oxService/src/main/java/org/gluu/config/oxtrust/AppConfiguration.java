@@ -126,7 +126,6 @@ public class AppConfiguration implements Configuration, Serializable {
     private String recaptchaSecretKey;
     private boolean authenticationRecaptchaEnabled;
 
-    private boolean scimTestMode;
     private boolean oxTrustApiTestMode;
     private boolean enableUpdateNotification;
 
@@ -656,14 +655,6 @@ public class AppConfiguration implements Configuration, Serializable {
 
     public void setRecaptchaSecretKey(String recaptchaSecretKey) {
         this.recaptchaSecretKey = recaptchaSecretKey;
-    }
-
-    public boolean isScimTestMode() {
-        return scimTestMode;
-    }
-
-    public void setScimTestMode(boolean scimTestMode) {
-        this.scimTestMode = scimTestMode;
     }
 
     public boolean isOxTrustApiTestMode() {

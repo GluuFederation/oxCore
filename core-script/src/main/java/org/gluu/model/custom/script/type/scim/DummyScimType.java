@@ -5,6 +5,8 @@ import java.util.Map;
 import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.model.CustomScript;
 
+import javax.ws.rs.core.Response;
+
 /**
  * @author jgomer2001
  */
@@ -111,23 +113,13 @@ public class DummyScimType implements ScimType {
     }
 
     @Override
-    public boolean allowResourceOperation(Object context, Object entity, Map<String, SimpleCustomProperty> configurationAttributes) {
-    	return true;
-    }
-    
-    @Override
-    public String allowSearchOperation(Object context, Map<String, SimpleCustomProperty> configurationAttributes) {
-    	return "";
-    }
-    
-    @Override
-    public String rejectedResourceOperationResponse(Object context, Object entity, Map<String, SimpleCustomProperty> configurationAttributes) {
+    public Response manageResourceOperation(Object context, Object entity, Object payload, Map<String, SimpleCustomProperty> configurationAttributes) {
     	return null;
     }
     
     @Override
-    public String rejectedSearchOperationResponse(Object context, Map<String, SimpleCustomProperty> configurationAttributes) {
-        return null;
+    public Response manageSearchOperation(Object context, Object searchRequest, Map<String, SimpleCustomProperty> configurationAttributes) {
+    	return null;
     }
     
 }

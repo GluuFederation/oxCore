@@ -93,7 +93,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 		Object dnValue = getDNValue(entry, entryClass);
 
-		Integer expirationValue = getExpirationValue(entry, entryClass);
+		Integer expirationValue = getExpirationValue(entry, entryClass, false);
 
 		List<AttributeData> attributes = getAttributesListForPersist(entry, propertiesAnnotations);
 

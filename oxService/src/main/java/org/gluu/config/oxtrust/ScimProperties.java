@@ -16,9 +16,11 @@ public class ScimProperties implements Serializable {
     private int maxCount;
     
     private ScimMode protectionMode;
+    
+    private String userExtensionSchemaURI;
 
     public int getMaxCount() {
-        return this.maxCount;
+        return maxCount;
     }
 
     public void setMaxCount(int maxCount) {
@@ -31,6 +33,14 @@ public class ScimProperties implements Serializable {
     
     public void setProtectionMode(ScimMode mode) {
     	protectionMode = mode;
+    }
+
+    public String getUserExtensionSchemaURI() {
+        return userExtensionSchemaURI;
+    }
+
+    public void setUserExtensionSchemaURI(String userExtensionSchemaURI) {
+        this.userExtensionSchemaURI = userExtensionSchemaURI;
     }
 
 }

@@ -768,7 +768,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		return propertiesAnnotations.get(0).getPropertyName();
 	}
 
-	protected String getExpirationPropertyName(Class<?> entryClass, boolean ignoreOnUpdate) {
+	protected PropertyAnnotation getExpirationProperty(Class<?> entryClass) {
 		List<PropertyAnnotation> propertiesAnnotations = getEntryExpirationAnnotations(entryClass);
 		if (propertiesAnnotations.size() == 0) {
 			return null;
@@ -777,18 +777,8 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		if (propertiesAnnotations.size() > 1) {
 			throw new MappingException("Entry should has only one property with annotation Expiration");
 		}
-
-        final PropertyAnnotation propertyAnnotation = propertiesAnnotations.get(0);
-
-		if (ignoreOnUpdate) {
-            Expiration expiration = (Expiration) ReflectHelper.getAnnotationByType(propertyAnnotation.getAnnotations(), Expiration.class);
-            if (expiration.ignoreDuringUpdate()) {
-                return null;
-            }
-        }
-
-
-		return propertyAnnotation.getPropertyName();
+		
+		return propertiesAnnotations.get(0);
 	}
 
 	protected <T> List<T> createEntities(Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations,
@@ -1737,21 +1727,29 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		return dnValue;
 	}
 
-    protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass) {
-	    return getExpirationValue(entry, entryClass, false);
-    }
-
-	protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass, boolean ignoreOnUpdate) {
+	protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass, boolean merge) {
 		// Check if entry has Expiration property
-		String expirationProperty = getExpirationPropertyName(entryClass, ignoreOnUpdate);
-		
+		PropertyAnnotation expirationProperty = getExpirationProperty(entryClass);
 		if (expirationProperty == null) {
+			return null;
+		}
+
+		String expirationPropertyName = expirationProperty.getPropertyName();
+
+		Expiration expirationAnnotation = (Expiration) ReflectHelper.getAnnotationByType(expirationProperty.getAnnotations(),
+				Expiration.class);
+
+		if (merge && expirationAnnotation.ignoreDuringUpdate()) {
+			return null;
+		}
+		
+		if (expirationPropertyName == null) {
 			// No entry expiration property
 			return null;
 		}
 
 		// Get Expiration value
-		Getter expirationGetter = getGetter(entryClass, expirationProperty);
+		Getter expirationGetter = getGetter(entryClass, expirationPropertyName);
 		if (expirationGetter == null) {
 			throw new MappingException("Entry should has getter for property " + expirationGetter);
 		}

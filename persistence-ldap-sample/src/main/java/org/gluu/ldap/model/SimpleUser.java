@@ -8,6 +8,7 @@ package org.gluu.ldap.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.gluu.persist.model.base.CustomAttribute;
@@ -92,6 +93,25 @@ public class SimpleUser implements Serializable {
 
         return values;
     }
+
+	public void setAttribute(String attributeName, String attributeValue, Boolean multiValued) {
+		CustomAttribute attribute = new CustomAttribute(attributeName, attributeValue);
+		if (multiValued != null) {
+			attribute.setMultiValued(multiValued);
+		}
+
+		removeAttribute(attributeName);
+		getCustomAttributes().add(attribute);
+	}
+
+	public void removeAttribute(String attributeName) {
+		for (Iterator<CustomAttribute> it = getCustomAttributes().iterator(); it.hasNext();) {
+			if (StringHelper.equalsIgnoreCase(attributeName, it.next().getName())) {
+				it.remove();
+				break;
+			}
+		}
+	}
 
     public String[] getCustomObjectClasses() {
         return customObjectClasses;

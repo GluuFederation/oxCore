@@ -1,8 +1,9 @@
 package org.gluu.service.document.store.conf;
 
-import java.io.Serializable;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.io.Serializable;
 
 /**
  * @author Yuriy Movchan on 04/10/2020
@@ -14,10 +15,12 @@ public class JcaDocumentStoreConfiguration implements Serializable {
 
     private String serverUrl; // http://localhost:8080/rmi
     private String workspaceName;
-	private long connectionTimeout; 
+	private int connectionTimeout; 
     
     private String userId;
     private String password;
+
+    @JsonIgnore
     private String decryptedPassword;
 
     public String getServerUrl() {
@@ -36,11 +39,11 @@ public class JcaDocumentStoreConfiguration implements Serializable {
 		this.workspaceName = workspaceName;
 	}
 
-	public long getConnectionTimeout() {
+	public int getConnectionTimeout() {
 		return connectionTimeout;
 	}
 
-	public void setConnectionTimeout(long connectionTimeout) {
+	public void setConnectionTimeout(int connectionTimeout) {
 		this.connectionTimeout = connectionTimeout;
 	}
 
@@ -71,7 +74,7 @@ public class JcaDocumentStoreConfiguration implements Serializable {
 	@Override
 	public String toString() {
 		return "JcaDocumentStoreConfiguration [serverUrl=" + serverUrl + ", workspaceName=" + workspaceName + ", connectionTimeout="
-				+ connectionTimeout + ", userId=" + userId + ", password=" + password + ", decryptedPassword=" + decryptedPassword + "]";
+				+ connectionTimeout + ", userId=" + userId + "]";
 	}
 
 }

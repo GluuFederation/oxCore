@@ -17,7 +17,7 @@ import org.gluu.persist.annotation.DataEntry;
  *
  * @author Yuriy Movchan Date: 08/11/2010
  */
-@DataEntry(sortBy = { "displayName" })
+@DataEntry(sortBy = "displayName")
 public class DisplayNameEntry extends Entry implements Serializable {
 
     private static final long serialVersionUID = 2536007777903091939L;

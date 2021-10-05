@@ -108,12 +108,8 @@ public class StringEncrypter {
      *            Byte stream
      * @return String representation
      */
-    private static String bytes2String(final byte[] bytes) {
-        final StringBuffer stringBuffer = new StringBuffer();
-        for (final byte element : bytes) {
-            stringBuffer.append((char) element);
-        }
-        return stringBuffer.toString();
+    private static String bytes2String(final byte[] bytes) throws UnsupportedEncodingException {
+        return new String(bytes, Util.UTF8);
     }
 
     /**
@@ -210,7 +206,7 @@ public class StringEncrypter {
             final byte[] cleartext = base64.decode(encryptedString.getBytes(Util.UTF8));
             final byte[] ciphertext = cipher.doFinal(cleartext);
 
-            return StringEncrypter.bytes2String(ciphertext);
+            return bytes2String(ciphertext);
         } catch (final Exception e) {
             if (silent) {
                 return encryptedString;

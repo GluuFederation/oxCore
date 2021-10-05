@@ -28,7 +28,7 @@ import org.gluu.persist.model.base.Entry;
  * @author Javier Rojas Blum
  * @version May 2, 2019
  */
-@DataEntry(sortBy = { "displayName" })
+@DataEntry(sortBy = "displayName")
 @ObjectClass(value = "gluuAttribute")
 public class GluuAttribute extends Entry implements Serializable {
 
@@ -39,14 +39,8 @@ public class GluuAttribute extends Entry implements Serializable {
 	@AttributeName(ignoreDuringUpdate = true)
 	private String inum;
 
-	@AttributeName
-	private String lifetime;
-
 	@AttributeName(name = "oxSourceAttribute")
 	private String sourceAttribute;
-
-	@AttributeName
-	private String salt;
 
 	@AttributeName(name = "oxNameIdType")
 	private String nameIdType;
@@ -138,28 +132,12 @@ public class GluuAttribute extends Entry implements Serializable {
 		this.inum = inum;
 	}
 
-	public String getLifetime() {
-		return lifetime;
-	}
-
-	public void setLifetime(String lifetime) {
-		this.lifetime = lifetime;
-	}
-
 	public String getSourceAttribute() {
 		return sourceAttribute;
 	}
 
 	public void setSourceAttribute(String sourceAttribute) {
 		this.sourceAttribute = sourceAttribute;
-	}
-
-	public String getSalt() {
-		return salt;
-	}
-
-	public void setSalt(String salt) {
-		this.salt = salt;
 	}
 
 	public String getNameIdType() {
@@ -381,7 +359,6 @@ public class GluuAttribute extends Entry implements Serializable {
 		result = prime * result + Arrays.hashCode(editType);
 		result = prime * result + ((gluuTooltip == null) ? 0 : gluuTooltip.hashCode());
 		result = prime * result + ((inum == null) ? 0 : inum.hashCode());
-		result = prime * result + ((lifetime == null) ? 0 : lifetime.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((nameIdType == null) ? 0 : nameIdType.hashCode());
 		result = prime * result + ((origin == null) ? 0 : origin.hashCode());
@@ -389,7 +366,6 @@ public class GluuAttribute extends Entry implements Serializable {
 		result = prime * result + ((oxMultiValuedAttribute == null) ? 0 : oxMultiValuedAttribute.hashCode());
 		result = prime * result + ((oxSCIMCustomAttribute == null) ? 0 : oxSCIMCustomAttribute.hashCode());
 		result = prime * result + (requred ? 1231 : 1237);
-		result = prime * result + ((salt == null) ? 0 : salt.hashCode());
 		result = prime * result + ((saml1Uri == null) ? 0 : saml1Uri.hashCode());
 		result = prime * result + ((saml2Uri == null) ? 0 : saml2Uri.hashCode());
 		result = prime * result + ((seeAlso == null) ? 0 : seeAlso.hashCode());

@@ -5,7 +5,7 @@
 	<groupId>org.gluu</groupId>
 	<artifactId>oxcore</artifactId>
 	<packaging>pom</packaging>
-	<version>5.0.0-SNAPSHOT</version>
+	<version>4.3.0.Final</version>
 	<name>oxCore</name>
 	<url>http://ox.gluu.org</url>
 
@@ -27,17 +27,6 @@
 
 	<modules>
 		<module>oxUtil</module>
-		<module>persistence-filter</module>
-		<module>persistence-model</module>
-		<module>persistence-core</module>
-		<module>persistence-ldap</module>
-		<module>persistence-annotation</module>
-		<module>persistence-couchbase</module>
-		<module>persistence-hybrid</module>
-		<module>persistence-cdi</module>
-		<module>persistence-standalone</module>
-		<module>persistence-ldap-sample</module>
-		<module>persistence-couchbase-sample</module>
 		<module>oxModel</module>
 		<module>core-cache</module>
 		<module>core-document-store</module>
@@ -61,7 +50,7 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-core-bom</artifactId>
-				<version>5.0.0-SNAPSHOT</version>
+				<version>4.3.0.Final</version>
 				<scope>import</scope>
 				<type>pom</type>
 			</dependency>

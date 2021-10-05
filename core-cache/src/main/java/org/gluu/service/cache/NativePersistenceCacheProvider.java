@@ -5,6 +5,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.persist.PersistenceEntryManager;
+import org.gluu.persist.exception.EntryPersistenceException;
+import org.gluu.persist.exception.operation.DuplicateEntryException;
 import org.gluu.persist.model.base.SimpleBranch;
 import org.gluu.search.filter.Filter;
 import org.slf4j.Logger;
@@ -38,6 +40,8 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<Persis
 
 	private boolean skipRemoveBeforePut;
 
+	private boolean attemptUpdateBeforeInsert;
+
     @PostConstruct
     public void init() {
     }
@@ -70,6 +74,7 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<Persis
             String persistenceType = entryManager.getPersistenceType(baseDn);
             // CouchbaseEntryManagerFactory.PERSISTENCE_TYPE
             skipRemoveBeforePut = "couchbase".equals(persistenceType);
+            attemptUpdateBeforeInsert = "sql".equals(persistenceType);
 
             log.info("Created NATIVE_PERSISTENCE cache provider. `baseDn`: " + baseDn);
         } catch (Exception e) {
@@ -158,22 +163,47 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<Persis
 		
 		String originalKey = key;
 
+        key = hashKey(key);
+
+        NativePersistenceCacheEntity entity = new NativePersistenceCacheEntity();
+        entity.setTtl(expirationInSeconds);
+        entity.setData(asString(object));
+        entity.setId(key);
+        entity.setDn(createDn(key));
+        entity.setCreationDate(creationDate);
+        entity.setExpirationDate(expirationDate.getTime());
+        entity.setDeletable(true);
+
         try {
-            key = hashKey(key);
-	
-			NativePersistenceCacheEntity entity = new NativePersistenceCacheEntity();
-			entity.setTtl(expirationInSeconds);
-			entity.setData(asString(object));
-			entity.setId(key);
-			entity.setDn(createDn(key));
-			entity.setCreationDate(creationDate);
-			entity.setExpirationDate(expirationDate.getTime());
-			entity.setDeletable(true);
-	
-			if (!skipRemoveBeforePut) {
-				silentlyRemoveEntityIfExists(entity.getDn());
+        	if (attemptUpdateBeforeInsert) {
+                entryManager.merge(entity);
+        	} else {
+				if (!skipRemoveBeforePut) {
+					silentlyRemoveEntityIfExists(entity.getDn());
+				}
+				entryManager.persist(entity);
+        	}
+        } catch (EntryPersistenceException e) {
+            if (e.getCause() instanceof DuplicateEntryException) { // on duplicate, remove entry and try to persist again
+                try {
+                    silentlyRemoveEntityIfExists(entity.getDn());
+                    entryManager.persist(entity);
+                    return;
+                } catch (Exception ex) {
+                    log.error("Failed to retry put entry, key: " + originalKey + ", hashedKey: " + key + ", message: " + ex.getMessage(), ex);
+                }
+            }
+
+			if (attemptUpdateBeforeInsert) {
+				try {
+					entryManager.persist(entity);
+					return;
+				} catch (Exception ex) {
+					log.error("Failed to retry put entry, key: " + originalKey + ", hashedKey: " + key + ", message: " + ex.getMessage(), ex);
+				}
 			}
-			entryManager.persist(entity);
+
+            log.error("Failed to put entry, key: " + originalKey + ", hashedKey: " + key + ", message: " + e.getMessage(), e);
         } catch (Exception e) {
         	log.error("Failed to put entry, key: " + originalKey + ", hashedKey: " + key + ", message: " + e.getMessage(), e); // log as trace since it is perfectly valid that entry is removed by timer for example
         }
@@ -182,7 +212,7 @@ public class NativePersistenceCacheProvider extends AbstractCacheProvider<Persis
     private boolean silentlyRemoveEntityIfExists(String dn) {
         try {
             if (entryManager.find(NativePersistenceCacheEntity.class, dn) != null) {
-                entryManager.remove(dn);
+                entryManager.remove(dn, NativePersistenceCacheEntity.class);
                 return true;
             }
         } catch (Exception e) {

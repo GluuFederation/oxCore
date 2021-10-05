@@ -126,7 +126,6 @@ public class AppConfiguration implements Configuration, Serializable {
     private String recaptchaSecretKey;
     private boolean authenticationRecaptchaEnabled;
 
-    private boolean scimTestMode;
     private boolean oxTrustApiTestMode;
     private boolean enableUpdateNotification;
 
@@ -165,6 +164,8 @@ public class AppConfiguration implements Configuration, Serializable {
     private Boolean enforceEmailUniqueness = true;
 
     private Boolean useLocalCache = false;
+
+    private boolean passIdTokenHintToLogoutRedirectUri = false;
 
     public ScimProperties getScimProperties() {
         return scimProperties;
@@ -656,14 +657,6 @@ public class AppConfiguration implements Configuration, Serializable {
         this.recaptchaSecretKey = recaptchaSecretKey;
     }
 
-    public boolean isScimTestMode() {
-        return scimTestMode;
-    }
-
-    public void setScimTestMode(boolean scimTestMode) {
-        this.scimTestMode = scimTestMode;
-    }
-
     public boolean isOxTrustApiTestMode() {
         return oxTrustApiTestMode;
     }
@@ -963,4 +956,11 @@ public class AppConfiguration implements Configuration, Serializable {
         this.enableUpdateNotification = enableUpdateNotification;
     }
 
+    public boolean isPassIdTokenHintToLogoutRedirectUri() {
+        return passIdTokenHintToLogoutRedirectUri;
+    }
+
+    public void setPassIdTokenHintToLogoutRedirectUri(boolean passIdTokenHintToLogoutRedirectUri) {
+        this.passIdTokenHintToLogoutRedirectUri = passIdTokenHintToLogoutRedirectUri;
+    }
 }

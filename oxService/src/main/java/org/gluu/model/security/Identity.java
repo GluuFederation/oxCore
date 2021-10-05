@@ -2,7 +2,6 @@ package org.gluu.model.security;
 
 import java.io.Serializable;
 import java.security.Principal;
-import java.security.acl.Group;
 import java.util.HashMap;
 
 import javax.annotation.PostConstruct;

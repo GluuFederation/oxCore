@@ -27,7 +27,7 @@ import java.util.Arrays;
  * @author Javier Rojas Blum
  * @version February 9, 2015
  */
-@DataEntry(sortBy = { "displayName" })
+@DataEntry(sortBy = "displayName")
 @ObjectClass(value = "Attribute")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Attribute extends Entry implements Serializable {

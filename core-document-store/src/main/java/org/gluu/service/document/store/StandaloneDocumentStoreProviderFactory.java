@@ -58,7 +58,7 @@ public class StandaloneDocumentStoreProviderFactory {
 			}
 
 			WebDavDocumentStoreProvider webDavDocumentStoreProvider = new WebDavDocumentStoreProvider();
-			webDavDocumentStoreProvider.configure(documentStoreConfiguration);
+			webDavDocumentStoreProvider.configure(documentStoreConfiguration, stringEncrypter);
 			webDavDocumentStoreProvider.init();
 
 			documentStoreProvider = webDavDocumentStoreProvider;

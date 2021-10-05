@@ -29,7 +29,7 @@ import org.gluu.util.StringHelper;
  *
  * @author Yuriy Movchan Date: 12/03/2014
  */
-@DataEntry(sortBy = "level")
+@DataEntry(sortBy = "level", sortByName = "oxLevel")
 @ObjectClass("oxCustomScript")
 public class CustomScript extends BaseEntry {
 

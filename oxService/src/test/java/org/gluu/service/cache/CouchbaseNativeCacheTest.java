@@ -1,7 +1,7 @@
 package org.gluu.service.cache;
 
-import org.gluu.persist.couchbase.impl.CouchbaseEntryManager;
-import org.gluu.persist.couchbase.impl.CouchbaseEntryManagerFactory;
+import org.gluu.orm.couchbase.impl.CouchbaseEntryManager;
+import org.gluu.orm.couchbase.impl.CouchbaseEntryManagerFactory;
 import org.testng.annotations.Test;
 
 import java.io.IOException;

@@ -66,6 +66,12 @@
 		<dependency>
 		    <groupId>org.opensaml</groupId>
 		    <artifactId>opensaml</artifactId>
+		    <exclusions>
+		    	<exclusion>
+		    		<groupId>ca.juliusdavies</groupId>
+		    		<artifactId>not-yet-commons-ssl</artifactId>
+		    	</exclusion>
+		    </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>

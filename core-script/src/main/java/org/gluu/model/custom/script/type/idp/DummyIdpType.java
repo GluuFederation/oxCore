@@ -45,4 +45,9 @@ public class DummyIdpType implements IdpType {
 		return false;
 	}
 
+	@Override
+	public boolean postAuthentication(Object context, Map<String, SimpleCustomProperty> configurationAttributes) {
+		return true;
+	}
+
 }

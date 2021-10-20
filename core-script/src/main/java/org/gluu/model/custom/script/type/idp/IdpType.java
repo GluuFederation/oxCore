@@ -22,4 +22,6 @@ public interface IdpType extends BaseExternalType {
 
 	boolean updateAttributes(Object context, Map<String, SimpleCustomProperty> configurationAttributes);
 
+	boolean postAuthentication(Object context, Map<String, SimpleCustomProperty> configurationAttributes);
+
 }

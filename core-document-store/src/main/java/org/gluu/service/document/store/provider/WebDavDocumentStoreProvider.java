@@ -10,6 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.jcr.RepositoryException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -39,7 +40,6 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.jackrabbit.webdav.client.methods.HttpMkcol;
-import org.apache.tika.io.IOUtils;
 import org.gluu.service.document.store.conf.DocumentStoreConfiguration;
 import org.gluu.service.document.store.conf.DocumentStoreType;
 import org.gluu.service.document.store.conf.WebDavDocumentStoreConfiguration;

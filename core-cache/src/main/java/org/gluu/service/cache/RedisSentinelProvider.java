@@ -11,6 +11,7 @@ import redis.clients.jedis.JedisSentinelPool;
 import redis.clients.jedis.Protocol;
 
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * Important : keep it weld free. It's reused by oxd !
@@ -35,7 +36,7 @@ public class RedisSentinelProvider extends AbstractRedisProvider {
             String password = redisConfiguration.getPassword();
             pool = new JedisSentinelPool(
                     getRedisConfiguration().getSentinelMasterGroupName(),
-                    Sets.newHashSet(StringUtils.split(getRedisConfiguration().getServers().trim(), ",")),
+                    Set.of(StringUtils.split(getRedisConfiguration().getServers().trim(), ",")),
                     poolConfig,
                     redisConfiguration.getConnectionTimeout(),
                     redisConfiguration.getSoTimeout(),

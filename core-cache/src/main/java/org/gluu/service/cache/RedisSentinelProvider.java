@@ -1,17 +1,17 @@
 package org.gluu.service.cache;
 
-import com.google.common.collect.Sets;
+import java.io.Serializable;
+import java.util.Set;
+
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
 import redis.clients.jedis.Protocol;
-
-import java.io.Serializable;
-import java.util.Set;
 
 /**
  * Important : keep it weld free. It's reused by oxd !

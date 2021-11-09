@@ -7,7 +7,7 @@
 	<packaging>pom</packaging>
 	<version>4.3.1-SNAPSHOT</version>
 	<name>oxCore</name>
-	<url>http://ox.gluu.org</url>
+	<url>https://www.gluu.org</url>
 
 	<prerequisites>
 		<maven>${maven.min-version}</maven>

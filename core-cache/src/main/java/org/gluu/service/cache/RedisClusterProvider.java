@@ -38,7 +38,7 @@ public class RedisClusterProvider extends AbstractRedisProvider {
             testConnection();
             LOG.debug("RedisClusterProvider started.");
         } catch (Exception e) {
-            LOG.error("Failed to start RedisClusterProvider.");
+            LOG.error("Failed to start RedisClusterProvider.", e.getMessage());
             throw new IllegalStateException("Error starting RedisClusterProvider", e);
         }
     }

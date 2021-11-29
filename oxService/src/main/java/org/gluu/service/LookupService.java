@@ -47,16 +47,20 @@ public class LookupService implements Serializable {
 	 *            display name
 	 * @return DisplayNameEntry object
 	 */
-	public DisplayNameEntry getDisplayNameEntry(String dn) throws Exception {
+	public <T> T getDisplayNameEntry(String dn, Class<T> entryClass) throws Exception {
 		String key = "l_" + dn;
-		DisplayNameEntry entry = (DisplayNameEntry) cacheService.get(OxConstants.CACHE_LOOKUP_NAME, key);
+		T entry = (T) cacheService.get(OxConstants.CACHE_LOOKUP_NAME, key);
 		if (entry == null) {
-			entry = persistenceEntryManager.find(dn, DisplayNameEntry.class, null);
+			entry = persistenceEntryManager.find(dn, entryClass, null);
 
 			cacheService.put(OxConstants.CACHE_LOOKUP_NAME, key, entry);
 		}
 
 		return entry;
+	}
+
+	public DisplayNameEntry getDisplayNameEntry(String dn) throws Exception {
+		return getDisplayNameEntry(dn, DisplayNameEntry.class);
 	}
 
 	/**
@@ -93,20 +97,24 @@ public class LookupService implements Serializable {
 	 * @return list of DisplayNameEntry objects
 	 */
 	@SuppressWarnings("unchecked")
-	public List<DisplayNameEntry> getDisplayNameEntries(String baseDn, List<String> dns) {
+	public <T> List<T> getDisplayNameEntries(String baseDn, Class<T> entryClass, List<String> dns) {
 		List<String> inums = getInumsFromDns(dns);
 		if (inums.size() == 0) {
 			return null;
 		}
 
 		String key = getCompoundKey(inums);
-		List<DisplayNameEntry> entries = (List<DisplayNameEntry>) cacheService.get(OxConstants.CACHE_LOOKUP_NAME, key);
+		List<T> entries = (List<T>) cacheService.get(OxConstants.CACHE_LOOKUP_NAME, key);
 		if (entries == null) {
 			Filter searchFilter = buildInumFilter(inums);
-			entries = persistenceEntryManager.findEntries(baseDn, DisplayNameEntry.class, searchFilter);
+			entries = persistenceEntryManager.findEntries(baseDn, entryClass, searchFilter);
 			cacheService.put(OxConstants.CACHE_LOOKUP_NAME, key, entries);
 		}
 		return entries;
+	}
+
+	public List<DisplayNameEntry> getDisplayNameEntries(String baseDn, List<String> dns) {
+		return getDisplayNameEntries(baseDn, DisplayNameEntry.class, dns);
 	}
 
 	public Filter buildInumFilter(List<String> inums) {
@@ -156,12 +164,15 @@ public class LookupService implements Serializable {
 			return null;
 		}
 
+		Class objectClass = DisplayNameEntry.class;
 		List<String> dns = new ArrayList<String>(entries.size());
 		for (Entry entry : entries) {
 			dns.add(entry.getDn());
+			objectClass = objectClass.getClass();
 		}
+		
 
-		return getDisplayNameEntries(baseDn, dns);
+		return getDisplayNameEntries(baseDn, objectClass, dns);
 	}
 
 	/**

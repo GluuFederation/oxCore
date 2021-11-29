@@ -47,8 +47,28 @@ public class LookupService implements Serializable {
 	 *            display name
 	 * @return DisplayNameEntry object
 	 */
+	public DisplayNameEntry getDisplayNameEntry(String dn, String objectClass) throws Exception {
+		String key = "l_" + objectClass + "_" + dn;
+		DisplayNameEntry entry = (DisplayNameEntry) cacheService.get(OxConstants.CACHE_LOOKUP_NAME, key);
+		if (entry == null) {
+			// Prepare sample for search
+			DisplayNameEntry sample = new DisplayNameEntry();
+			sample.setBaseDn(dn);
+			sample.setCustomObjectClasses(new String[] { objectClass });
+
+			List<DisplayNameEntry> entries = persistenceEntryManager.findEntries(sample, 1);
+			if (entries.size() == 1) {
+				entry = entries.get(0);
+			}
+
+			cacheService.put(OxConstants.CACHE_LOOKUP_NAME, key, entry);
+		}
+
+		return entry;
+	}
+
 	public <T> T getDisplayNameEntry(String dn, Class<T> entryClass) throws Exception {
-		String key = "l_" + dn;
+		String key = "l_" + entryClass.getSimpleName() + "_" + dn;
 		T entry = (T) cacheService.get(OxConstants.CACHE_LOOKUP_NAME, key);
 		if (entry == null) {
 			entry = persistenceEntryManager.find(dn, entryClass, null);
@@ -76,7 +96,7 @@ public class LookupService implements Serializable {
 		}
 
 		Class entryClass = Class.class.forName(clazz);
-		String key = "l_" + dn;
+		String key = "l_" + entryClass.getSimpleName() + "_" + dn;
 		Object entry = cacheService.get(OxConstants.CACHE_LOOKUP_NAME, key);
 		if (entry == null) {
 			entry = persistenceEntryManager.find(entryClass, dn);
@@ -103,7 +123,7 @@ public class LookupService implements Serializable {
 			return null;
 		}
 
-		String key = getCompoundKey(inums);
+		String key = getCompoundKey(entryClass, inums);
 		List<T> entries = (List<T>) cacheService.get(OxConstants.CACHE_LOOKUP_NAME, key);
 		if (entries == null) {
 			Filter searchFilter = buildInumFilter(inums);
@@ -144,13 +164,13 @@ public class LookupService implements Serializable {
 		return inums;
 	}
 
-	private String getCompoundKey(List<String> inums) {
+	private <T> String getCompoundKey(Class<T> entryClass, List<String> inums) {
 		StringBuilder compoundKey = new StringBuilder();
 		for (String inum : inums) {
 			if (compoundKey.length() > 0) {
 				compoundKey.append("_");
 			} else {
-				compoundKey.append("l_");
+				compoundKey.append("l_" + entryClass.getSimpleName() + "_");
 			}
 			compoundKey.append(inum);
 		}

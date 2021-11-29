@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 import org.gluu.persist.model.base.Entry;
 import org.gluu.persist.annotation.AttributeName;
+import org.gluu.persist.annotation.CustomObjectClass;
 import org.gluu.persist.annotation.DataEntry;
 
 /**
@@ -30,6 +31,9 @@ public class DisplayNameEntry extends Entry implements Serializable {
         this.inum = inum;
         this.displayName = displayName;
     }
+
+    @CustomObjectClass
+    private String[] customObjectClasses;
 
     @AttributeName(ignoreDuringUpdate = true)
     private String inum;
@@ -74,6 +78,14 @@ public class DisplayNameEntry extends Entry implements Serializable {
      */
     public String getUid() {
         return uid;
+    }
+
+    public String[] getCustomObjectClasses() {
+        return customObjectClasses;
+    }
+
+    public void setCustomObjectClasses(String[] customObjectClasses) {
+        this.customObjectClasses = customObjectClasses;
     }
 
 }

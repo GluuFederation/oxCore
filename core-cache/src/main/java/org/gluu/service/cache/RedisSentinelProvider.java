@@ -1,6 +1,8 @@
 package org.gluu.service.cache;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.SerializationUtils;
@@ -36,7 +38,7 @@ public class RedisSentinelProvider extends AbstractRedisProvider {
             String password = redisConfiguration.getPassword();
             pool = new JedisSentinelPool(
                     getRedisConfiguration().getSentinelMasterGroupName(),
-                    Set.of(StringUtils.split(getRedisConfiguration().getServers().trim(), ",")),
+                    new HashSet<String>(Arrays.asList(StringUtils.split(getRedisConfiguration().getServers().trim(), ","))),
                     poolConfig,
                     redisConfiguration.getConnectionTimeout(),
                     redisConfiguration.getSoTimeout(),

@@ -27,6 +27,12 @@ public class RedisConfiguration implements Serializable {
 
     private String sslTrustStoreFilePath = "";
 
+    private String sslTrustStorePassword = "";
+
+    private String sslKeyStoreFilePath = "";
+
+    private String sslKeyStorePassword = "";
+
     /**
      * The cap on the number of "idle" instances in the pool. If maxIdle
      * is set too low on heavily loaded systems it is possible you will see
@@ -140,6 +146,30 @@ public class RedisConfiguration implements Serializable {
         this.sslTrustStoreFilePath = sslTrustStoreFilePath;
     }
 
+    public String getSslTrustStorePassword() {
+        return sslTrustStorePassword;
+    }
+
+    public void setSslTrustStorePassword(String sslTrustStorePassword) {
+        this.sslTrustStorePassword = sslTrustStorePassword;
+    }
+
+    public String getSslKeyStoreFilePath() {
+        return sslKeyStoreFilePath;
+    }
+
+    public void setSslKeyStoreFilePath(String sslKeyStoreFilePath) {
+        this.sslKeyStoreFilePath = sslKeyStoreFilePath;
+    }
+
+    public String getSslKeyStorePassword() {
+        return sslKeyStorePassword;
+    }
+
+    public void setSslKeyStorePassword(String sslKeyStorePassword) {
+        this.sslKeyStorePassword = sslKeyStorePassword;
+    }
+
     public String getSentinelMasterGroupName() {
         return sentinelMasterGroupName;
     }
@@ -156,6 +186,7 @@ public class RedisConfiguration implements Serializable {
                 ", redisProviderType=" + redisProviderType +
                 ", useSSL=" + useSSL +
                 ", sslTrustStoreFilePath=" + sslTrustStoreFilePath +
+                ", sslKeyStoreFilePath=" + sslKeyStoreFilePath +
                 ", sentinelMasterGroupName=" + sentinelMasterGroupName +
                 ", maxIdleConnections=" + maxIdleConnections +
                 ", maxTotalConnections=" + maxTotalConnections +

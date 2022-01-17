@@ -68,6 +68,8 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
 
 	private static final String JSON_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
+	public static final int EXPIRATION_30_DAYS = 30 * 86400;
+
 	private static final long serialVersionUID = 2127241817126412574L;
 
     private static final Logger LOG = LoggerFactory.getLogger(CouchbaseConnectionProvider.class);
@@ -84,6 +86,19 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
         this.operationService = operationService;
         this.FILTER_CONVERTER = new CouchbaseFilterConverter(this);
         subscribers = new LinkedList<DeleteNotifier>();
+    }
+
+    @Override
+    protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass, boolean merge) {
+        Integer value = super.getExpirationValue(entry, entryClass, merge);
+
+        // if expiration is more then 30 days we must convert it to absolute Unit time stamp to avoid immediate expiration https://docs.couchbase.com/java-sdk/current/concept-docs/documents.html#setting-document-expiration
+        if (value != null && value >= EXPIRATION_30_DAYS) {
+            final int now = (int) (System.currentTimeMillis() / 1000);
+            value = now + value;
+        }
+
+        return value;
     }
 
     @Override

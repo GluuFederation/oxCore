@@ -117,6 +117,10 @@ public abstract class AbstractCorsFilter implements Filter {
         // Determines the CORS request type.
         AbstractCorsFilter.CORSRequestType requestType = checkRequestType(request);
 
+        if (log.isTraceEnabled()) {
+            log.trace("CORSRequestType: {}, decorateRequest: {}", requestType, decorateRequest);
+        }
+
         // Adds CORS specific attributes to request.
         if (decorateRequest) {
             AbstractCorsFilter.decorateCORSProperties(request, requestType);
@@ -140,6 +144,7 @@ public abstract class AbstractCorsFilter implements Filter {
                 break;
             default:
                 // Handles a CORS request that violates specification.
+                log.trace("CORS request type is not identified.");
                 this.handleInvalidCORS(request, response, filterChain);
                 break;
         }
@@ -179,11 +184,17 @@ public abstract class AbstractCorsFilter implements Filter {
 
         // Section 6.1.2
         if (!isOriginAllowed(origin)) {
+            if (log.isTraceEnabled()) {
+                log.trace("CORS forbidden by original. Origin: {}, isAnyOriginAllowed: {}, allowedOrigins: {}", origin, allowedOrigins, isAnyOriginAllowed());
+            }
             handleInvalidCORS(request, response, filterChain);
             return;
         }
 
         if (!allowedHttpMethods.contains(method)) {
+            if (log.isTraceEnabled()) {
+                log.trace("CORS forbidden by http method. Method: {}, allowedHttpMethods: {}", method, allowedHttpMethods);
+            }
             handleInvalidCORS(request, response, filterChain);
             return;
         }
@@ -257,6 +268,9 @@ public abstract class AbstractCorsFilter implements Filter {
 
         // Section 6.2.2
         if (!isOriginAllowed(origin)) {
+            if (log.isTraceEnabled()) {
+                log.trace("CORS forbidden by original. Origin: {}, isAnyOriginAllowed: {}, allowedOrigins: {}", origin, allowedOrigins, isAnyOriginAllowed());
+            }
             handleInvalidCORS(request, response, filterChain);
             return;
         }
@@ -266,6 +280,9 @@ public abstract class AbstractCorsFilter implements Filter {
                 AbstractCorsFilter.REQUEST_HEADER_ACCESS_CONTROL_REQUEST_METHOD);
         if (accessControlRequestMethod == null
                 || !HTTP_METHODS.contains(accessControlRequestMethod.trim())) {
+            if (log.isTraceEnabled()) {
+                log.trace("CORS forbidden by accessControlRequestMethod. accessControlRequestMethod: {}, HTTP_METHODS: {}", accessControlRequestMethod, HTTP_METHODS);
+            }
             handleInvalidCORS(request, response, filterChain);
             return;
         } else {
@@ -287,6 +304,9 @@ public abstract class AbstractCorsFilter implements Filter {
 
         // Section 6.2.5
         if (!allowedHttpMethods.contains(accessControlRequestMethod)) {
+            if (log.isTraceEnabled()) {
+                log.trace("CORS forbidden by accessControlRequestMethod. accessControlRequestMethod: {}, allowedHttpMethods: {}", accessControlRequestMethod, allowedHttpMethods);
+            }
             handleInvalidCORS(request, response, filterChain);
             return;
         }
@@ -295,6 +315,9 @@ public abstract class AbstractCorsFilter implements Filter {
         if (!accessControlRequestHeaders.isEmpty()) {
             for (String header : accessControlRequestHeaders) {
                 if (!allowedHttpHeaders.contains(header)) {
+                    if (log.isTraceEnabled()) {
+                        log.trace("CORS forbidden by accessControlRequestMethod. accessControlRequestMethod: {}, allowedHttpHeaders: {}, header: {}", accessControlRequestMethod, allowedHttpHeaders, header);
+                    }
                     handleInvalidCORS(request, response, filterChain);
                     return;
                 }

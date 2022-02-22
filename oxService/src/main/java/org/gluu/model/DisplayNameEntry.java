@@ -41,9 +41,6 @@ public class DisplayNameEntry extends Entry implements Serializable {
     @AttributeName
     private String displayName;
 
-    @AttributeName
-    private String uid;
-
     public String getInum() {
         return inum;
     }
@@ -63,21 +60,6 @@ public class DisplayNameEntry extends Entry implements Serializable {
     @Override
     public String toString() {
         return String.format("DisplayNameEntry [displayName=%s, inum=%s, toString()=%s]", displayName, inum, super.toString());
-    }
-
-    /**
-     * @param uid
-     *            the uid to set
-     */
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
-
-    /**
-     * @return the uid
-     */
-    public String getUid() {
-        return uid;
     }
 
     public String[] getCustomObjectClasses() {

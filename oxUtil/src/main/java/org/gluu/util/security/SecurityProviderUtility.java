@@ -29,104 +29,167 @@ import org.slf4j.LoggerFactory;
  */
 public class SecurityProviderUtility {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SecurityProviderUtility.class);
+    public static final String DEF_JKS      = "jks";
+    public static final String DEF_PKCS12   = "pkcs12";
+    public static final String DEF_BCFKS    = "bcfks";
 
-	public static final String BC_PROVIDER_NAME = "BC";
-	public static final String BC_FIPS_PROVIDER_NAME = "BCFIPS";
+    /**
+     * Security Mode Type
+     * 
+     * @author Sergey Manoylo
+     * @version March 11, 2022 
+     */
+    public static enum SecurityModeType {
 
-	public static boolean USE_FIPS_CHECK_COMMAND = false;
+        JKS_SECURITY_MODE (DEF_JKS),
+        PKCS12_SECURITY_MODE (DEF_PKCS12),
+        BCFKS_SECURITY_MODE (DEF_BCFKS);
+        
+        private final String value;
 
-	private static boolean isFipsMode = false;
+        /**
+         * Constructor
+         * 
+         * @param value string value, that defines Security Mode Type 
+         */
+        SecurityModeType(String value) {
+            this.value = value;
+        }
 
-	private static Provider bouncyCastleProvider;
+        /**
+         * Creates/parses SecurityModeType from String value   
+         * 
+         * @param param string value, that defines Security Mode Type
+         * @return SecurityModeType
+         */
+        public static SecurityModeType fromString(String param) {
+            switch(param) {
+            case DEF_JKS: {
+                return JKS_SECURITY_MODE;
+            }
+            case DEF_PKCS12: {
+                return PKCS12_SECURITY_MODE;
+            }
+            case DEF_BCFKS: {
+                return BCFKS_SECURITY_MODE;
+            }
+            }
+            return null;
+        }
 
-	private static final String BC_GENERIC_PROVIDER_CLASS_NAME = "org.bouncycastle.jce.provider.BouncyCastleProvider";
-	private static final String BC_FIPS_PROVIDER_CLASS_NAME    = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider";
+        /**
+         * Returns a string representation of the object. In this case the parameter name for the default scope.
+         */
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
 
-	public static void installBCProvider(boolean silent) {
-		String providerName = BC_PROVIDER_NAME;
-		String className = BC_GENERIC_PROVIDER_CLASS_NAME;
+    private static final Logger LOG = LoggerFactory.getLogger(SecurityProviderUtility.class);
 
-		isFipsMode = checkFipsMode();
-		if (isFipsMode) {
-			LOG.info("Fips mode is enabled");
+    public static final String BC_PROVIDER_NAME = "BC";
+    public static final String BC_FIPS_PROVIDER_NAME = "BCFIPS";
 
-			providerName = BC_FIPS_PROVIDER_NAME;
-			className = BC_FIPS_PROVIDER_CLASS_NAME;
-		}
+    public static boolean USE_FIPS_CHECK_COMMAND = false;
 
-//		// Remove current providers in case on web container restart 
-//		Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
-//		Security.removeProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
-		
-		try {
-			installBCProvider(providerName, className, silent);
-		} catch (Exception e) {
-			LOG.error(
-					"Security provider '{}' doesn't exists in class path. Please deploy correct war for this environment!");
-			LOG.error(e.getMessage(), e);
-		}
-	}
+    private static SecurityModeType securityMode = null;
 
-	public static void installBCProvider() {
-		installBCProvider(false);
-	}
+    private static Provider bouncyCastleProvider;
 
-	public static void installBCProvider(String providerName, String providerClassName, boolean silent) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
-		bouncyCastleProvider = Security.getProvider(providerName);
-		if (bouncyCastleProvider == null) {
-			if (!silent) {
-				LOG.info("Adding Bouncy Castle Provider");
-			}
+    private static final String BC_GENERIC_PROVIDER_CLASS_NAME = "org.bouncycastle.jce.provider.BouncyCastleProvider";
+    private static final String BC_FIPS_PROVIDER_CLASS_NAME    = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider";
 
-			bouncyCastleProvider = (Provider) Class.forName(providerClassName).getConstructor().newInstance();
-			Security.addProvider(bouncyCastleProvider);
-			LOG.info("Provider '{}' with version {} is added", bouncyCastleProvider.getName(), bouncyCastleProvider.getVersionStr());
-		} else {
-			if (!silent) {
-				LOG.info("Bouncy Castle Provider was added already");
-			}
-		}
-	}
+    public static void installBCProvider(boolean silent) {
+        String providerName = BC_PROVIDER_NAME;
+        String className = BC_GENERIC_PROVIDER_CLASS_NAME;
 
-	/**
-	 * A check that the server is running in FIPS-approved-only mode. This is a part
-	 * of compliance to ensure that the server is really FIPS compliant
-	 * 
-	 * @return boolean value
-	 */
-	private static boolean checkFipsMode() {
-		try {
-			// First check if there are FIPS provider libs
-			Class.forName(BC_FIPS_PROVIDER_CLASS_NAME);
-		} catch (ClassNotFoundException e) {
-			LOG.trace("BC Fips provider is not available", e);
-			return false;
-		}
+        if (securityMode == null || securityMode == SecurityModeType.BCFKS_SECURITY_MODE) {
+            System.out.println("securityMode == null || securityMode == SecurityModeType.BCFKS_SECURITY_MODE");	
+            boolean isFipsMode = checkFipsMode();
+            if (isFipsMode) {
+                LOG.info("Fips mode is enabled");
 
-		if (USE_FIPS_CHECK_COMMAND) {
-			String osName = System.getProperty("os.name");
-			if (StringHelper.isNotEmpty(osName) && osName.toLowerCase().startsWith("windows")) {
-				return false;
-			}
+                providerName = BC_FIPS_PROVIDER_NAME;
+                className = BC_FIPS_PROVIDER_CLASS_NAME;
 
-			try {
-				// Check if FIPS is enabled 
-				Process process = Runtime.getRuntime().exec("fips-mode-setup --check");
-				List<String> result = IOUtils.readLines(process.getInputStream(), StandardCharsets.UTF_8);
-				if ((result.size() > 0) && StringHelper.equalsIgnoreCase(result.get(0), "FIPS mode is enabled.")) {
-					return true;
-				}
-			} catch (IOException e) {
-				LOG.error("Failed to check if FIPS mode was enabled", e);
-				return false;
-			}
-	
-			return false;
-		}
+                securityMode = SecurityModeType.BCFKS_SECURITY_MODE;
+            }
+            else {
+                securityMode = SecurityModeType.JKS_SECURITY_MODE;
+            }
+        }
 
-		return true;
-	}
+        try {
+            installBCProvider(providerName, className, silent);
+        } catch (Exception e) {
+            LOG.error(
+                    "Security provider '{}' doesn't exists in class path. Please deploy correct war for this environment!");
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public static void installBCProvider() {
+        installBCProvider(false);
+    }
+
+    public static void installBCProvider(String providerName, String providerClassName, boolean silent) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+        bouncyCastleProvider = Security.getProvider(providerName);
+        if (bouncyCastleProvider == null) {
+            if (!silent) {
+                LOG.info("Adding Bouncy Castle Provider");
+            }
+
+            bouncyCastleProvider = (Provider) Class.forName(providerClassName).getConstructor().newInstance();
+            Security.addProvider(bouncyCastleProvider);
+            LOG.info("Provider '{}' with version {} is added", bouncyCastleProvider.getName(), bouncyCastleProvider.getVersionStr());
+        } else {
+            if (!silent) {
+                LOG.info("Bouncy Castle Provider was added already");
+            }
+        }
+    }
+
+    /**
+    * A check that the server is running in FIPS-approved-only mode. This is a part
+    * of compliance to ensure that the server is really FIPS compliant
+    * 
+    * @return boolean value
+    */
+    private static boolean checkFipsMode() {
+        try {
+            // First check if there are FIPS provider libs
+            Class.forName(BC_FIPS_PROVIDER_CLASS_NAME);
+        } catch (ClassNotFoundException e) {
+            System.out.println("BC Fips provider is not available");
+            LOG.trace("BC Fips provider is not available", e);
+            return false;
+        }
+
+        System.out.println("USE_FIPS_CHECK_COMMAND = " + USE_FIPS_CHECK_COMMAND);
+
+        if (USE_FIPS_CHECK_COMMAND) {
+            String osName = System.getProperty("os.name");
+            if (StringHelper.isNotEmpty(osName) && osName.toLowerCase().startsWith("windows")) {
+                return false;
+            }
+
+            try {
+                // Check if FIPS is enabled 
+                Process process = Runtime.getRuntime().exec("fips-mode-setup --check");
+                List<String> result = IOUtils.readLines(process.getInputStream(), StandardCharsets.UTF_8);
+                if ((result.size() > 0) && StringHelper.equalsIgnoreCase(result.get(0), "FIPS mode is enabled.")) {
+                    return true;
+                }
+            } catch (IOException e) {
+                LOG.error("Failed to check if FIPS mode was enabled", e);
+                return false;
+            }
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * Determines if cryptography restrictions apply.
@@ -144,16 +207,19 @@ public class SecurityProviderUtility {
         }
     }
 
-	public static String getBCProviderName() {
-		return bouncyCastleProvider.getName();
-	}
+    public static String getBCProviderName() {
+        return bouncyCastleProvider.getName();
+    }
 
-	public static Provider getBCProvider() {
-		return bouncyCastleProvider;
-	}
+    public static Provider getBCProvider() {
+        return bouncyCastleProvider;
+    }
 
-	public static boolean isFipsMode() {
-		return isFipsMode;
-	}
+    public static SecurityModeType getSecurityMode() {
+        return securityMode;
+    }
 
+    public static void setSecurityMode(SecurityModeType securityModeIn) {
+        securityMode = securityModeIn;
+    }
 }

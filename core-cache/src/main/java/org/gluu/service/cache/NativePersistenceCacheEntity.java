@@ -11,8 +11,6 @@ import java.util.Date;
 @ObjectClass(value = "cache")
 public class NativePersistenceCacheEntity extends DeletableEntity implements Serializable, Deletable {
 
-    @DN
-    private String dn;
     @Expiration
     private Integer ttl;
     @AttributeName(name = "uuid")
@@ -22,23 +20,15 @@ public class NativePersistenceCacheEntity extends DeletableEntity implements Ser
     @AttributeName(name = "dat")
     private String data;
 
-    public String getDn() {
-        return dn;
+    public Integer getTtl() {
+        return ttl;
     }
 
-    public void setDn(String dn) {
-        this.dn = dn;
+    public void setTtl(Integer ttl) {
+        this.ttl = ttl;
     }
 
-	public Integer getTtl() {
-		return ttl;
-	}
-
-	public void setTtl(Integer ttl) {
-		this.ttl = ttl;
-	}
-
-	public String getId() {
+    public String getId() {
         return id;
     }
 
@@ -64,7 +54,7 @@ public class NativePersistenceCacheEntity extends DeletableEntity implements Ser
 
     @Override
 	public String toString() {
-		return "NativePersistenceCacheEntity [dn=" + dn + ", ttl=" + ttl + ", id=" + id + ", creationDate=" + creationDate + ", data="
+		return "NativePersistenceCacheEntity [dn=" + getDn() + ", ttl=" + ttl + ", id=" + id + ", creationDate=" + creationDate + ", data="
 				+ data + "]";
 	}
 }

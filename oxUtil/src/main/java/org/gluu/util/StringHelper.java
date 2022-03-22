@@ -136,7 +136,7 @@ public final class StringHelper {
         String[] result = new String[array.length];
         
         for (int i = 0; i < result.length; i++) {
-        	result[i] = String.valueOf(array[i]);
+        	result[i] = toString(array[i]);
         }
 
         return result;
@@ -518,7 +518,11 @@ public final class StringHelper {
     }
 
     public static String toString(Object object) {
-        return (object == null) ? null : object.toString();
+    	if (object instanceof String) {
+    		return (String) object;
+    	}
+
+    	return (object == null) ? null : object.toString();
     }
 
     public static String qualify(final String prefix, String name) {

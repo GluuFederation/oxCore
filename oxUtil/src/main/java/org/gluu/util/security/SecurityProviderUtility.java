@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
  */
 public class SecurityProviderUtility {
 
+    private static final Logger LOG = LoggerFactory.getLogger(SecurityProviderUtility.class);
+
     public static final String DEF_JKS      = "jks";
     public static final String DEF_PKCS12   = "pkcs12";
     public static final String DEF_BCFKS    = "bcfks";
@@ -86,8 +88,6 @@ public class SecurityProviderUtility {
         }
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(SecurityProviderUtility.class);
-
     public static final String BC_PROVIDER_NAME = "BC";
     public static final String BC_FIPS_PROVIDER_NAME = "BCFIPS";
 
@@ -105,7 +105,7 @@ public class SecurityProviderUtility {
         String className = BC_GENERIC_PROVIDER_CLASS_NAME;
 
         if (securityMode == null || securityMode == SecurityModeType.BCFKS_SECURITY_MODE) {
-            System.out.println("securityMode == null || securityMode == SecurityModeType.BCFKS_SECURITY_MODE");	
+        	LOG.trace("securityMode == null || securityMode == SecurityModeType.BCFKS_SECURITY_MODE");
             boolean isFipsMode = checkFipsMode();
             if (isFipsMode) {
                 LOG.info("Fips mode is enabled");
@@ -166,7 +166,7 @@ public class SecurityProviderUtility {
             return false;
         }
 
-        System.out.println("USE_FIPS_CHECK_COMMAND = " + USE_FIPS_CHECK_COMMAND);
+        LOG.trace("USE_FIPS_CHECK_COMMAND = " + USE_FIPS_CHECK_COMMAND);
 
         if (USE_FIPS_CHECK_COMMAND) {
             String osName = System.getProperty("os.name");

@@ -79,6 +79,7 @@ public class LookupService implements Serializable {
 		return entry;
 	}
 
+	@Deprecated
 	public DisplayNameEntry getDisplayNameEntry(String dn) throws Exception {
 		return getDisplayNameEntry(dn, DisplayNameEntry.class);
 	}
@@ -133,6 +134,7 @@ public class LookupService implements Serializable {
 		return entries;
 	}
 
+	@Deprecated
 	public List<DisplayNameEntry> getDisplayNameEntries(String baseDn, List<String> dns) {
 		return getDisplayNameEntries(baseDn, DisplayNameEntry.class, dns);
 	}

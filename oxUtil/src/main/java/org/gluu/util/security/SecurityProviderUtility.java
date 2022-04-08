@@ -160,7 +160,6 @@ public class SecurityProviderUtility {
             // First check if there are FIPS provider libs
             Class.forName(BC_FIPS_PROVIDER_CLASS_NAME);
         } catch (ClassNotFoundException e) {
-            System.out.println("BC Fips provider is not available");
             LOG.trace("BC Fips provider is not available", e);
             return false;
         }

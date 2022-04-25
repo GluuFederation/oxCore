@@ -18,7 +18,7 @@ import org.gluu.persist.annotation.AttributeEnum;
  */
 public enum ProgrammingLanguage implements AttributeEnum {
 
-    PYTHON("python", "Python"), JAVA_SCRIPT("javascript", "JavaScript");
+    PYTHON("python", "Jython"), JAVA_SCRIPT("javascript", "JavaScript");
 
     private String value;
     private String displayName;

@@ -26,12 +26,34 @@ import org.slf4j.LoggerFactory;
  *
  * @author Yuriy Movchan
  * @author madhumitas
+ * @author Sergey Manoylo
+ * @version April 26, 2022
  */
 public class SecurityProviderUtility {
 
-    public static final String DEF_JKS      = "jks";
-    public static final String DEF_PKCS12   = "pkcs12";
-    public static final String DEF_BCFKS    = "bcfks";
+    // security mode
+    public static final String DEF_MODE_BCPROV      = "BCPROV";
+    public static final String DEF_MODE_BCFIPS      = "BCFIPS";
+
+    // keystorage type
+    public static final String DEF_KS_JKS           = "JKS";
+    public static final String DEF_KS_PKCS12        = "PKCS12";
+    public static final String DEF_KS_BCFKS         = "BCFKS";
+
+    // JKS additional extensions
+    public static final String DEF_EXT_JKS          = "jks";
+    public static final String DEF_EXT_KEYSTORE     = "keystore";
+    public static final String DEF_EXT_KS           = "ks";
+
+    // PKCS12 additional extensions
+    public static final String DEF_EXT_PKCS12       = "pkcs12";
+    public static final String DEF_EXT_P12          = "p12";
+    public static final String DEF_EXT_PFX          = "pfx";
+
+    // BCFKS additional extensions
+    public static final String DEF_EXT_BCFKS        = "bcfks";
+    public static final String DEF_EXT_BCF          = "bcf";
+    public static final String DEF_EXT_BCFIPS       = "bcfips";
 
     /**
      * Security Mode Type
@@ -41,10 +63,9 @@ public class SecurityProviderUtility {
      */
     public static enum SecurityModeType {
 
-        JKS_SECURITY_MODE (DEF_JKS),
-        PKCS12_SECURITY_MODE (DEF_PKCS12),
-        BCFKS_SECURITY_MODE (DEF_BCFKS);
-        
+        BCPROV_SECURITY_MODE (DEF_MODE_BCPROV),
+        BCFIPS_SECURITY_MODE (DEF_MODE_BCFIPS);
+
         private final String value;
 
         /**
@@ -63,15 +84,12 @@ public class SecurityProviderUtility {
          * @return SecurityModeType
          */
         public static SecurityModeType fromString(String param) {
-            switch(param) {
-            case DEF_JKS: {
-                return JKS_SECURITY_MODE;
+            switch(param.toUpperCase()) {
+            case DEF_MODE_BCPROV: {
+                return BCPROV_SECURITY_MODE;
             }
-            case DEF_PKCS12: {
-                return PKCS12_SECURITY_MODE;
-            }
-            case DEF_BCFKS: {
-                return BCFKS_SECURITY_MODE;
+            case DEF_MODE_BCFIPS: {
+                return BCFIPS_SECURITY_MODE;
             }
             }
             return null;
@@ -84,7 +102,134 @@ public class SecurityProviderUtility {
         public String toString() {
             return value;
         }
+
+        /**
+         * 
+         * @return
+         */
+        public KeyStorageType[] getKeystorageTypes() {
+            KeyStorageType [] keystorages = null;
+            if (this == BCPROV_SECURITY_MODE) {
+                keystorages = new KeyStorageType[] { KeyStorageType.JKS_KS, KeyStorageType.PKCS12_KS };
+            }
+            else if (this == BCFIPS_SECURITY_MODE) {
+                keystorages = new KeyStorageType[] { KeyStorageType.BCFKS_KS };
+            }
+            return keystorages; 
+        }
     }
+
+    /**
+     * Security Mode Type
+     * 
+     * @author Sergey Manoylo
+     * @version March 11, 2022 
+     */
+    public static enum KeyStorageType {
+
+        JKS_KS (DEF_KS_JKS),
+        PKCS12_KS (DEF_KS_PKCS12),
+        BCFKS_KS (DEF_KS_BCFKS);
+
+        private final String value;
+
+        /**
+         * Constructor
+         * 
+         * @param value string value, that defines Security Mode Type 
+         */
+        KeyStorageType(String value) {
+            this.value = value;
+        }
+
+        /**
+         * Creates/parses SecurityModeType from String value
+         * 
+         * @param param string value, that defines Security Mode Type
+         * @return SecurityModeType
+         */
+        public static KeyStorageType fromString(String param) {
+            switch(param.toUpperCase()) {
+            case DEF_KS_JKS: {
+                return JKS_KS;
+            }
+            case DEF_KS_PKCS12: {
+                return PKCS12_KS;
+            }
+            case DEF_KS_BCFKS: {
+                return BCFKS_KS;
+            }
+            }
+            return null;
+        }
+
+        /**
+         * Returns a string representation of the object. In this case the parameter name for the default scope.
+         */
+        @Override
+        public String toString() {
+            return value;
+        }
+
+        /**
+         * 
+         * @return
+         */
+        public String[] getExtensions() {
+            String[] extensions = null;
+            if (this == JKS_KS) {
+                extensions = new String[] { DEF_EXT_JKS, DEF_EXT_KEYSTORE, DEF_EXT_KS };
+            }
+            else if(this == PKCS12_KS) {
+                extensions = new String[] { DEF_EXT_PKCS12, DEF_EXT_P12, DEF_EXT_P12 };
+            }
+            else if(this == BCFKS_KS) {
+                extensions = new String[] { DEF_EXT_BCFKS, DEF_EXT_BCF, DEF_EXT_BCFIPS };
+            }
+            return extensions;
+        }
+
+        /**
+         * 
+         * @return
+         */
+        public SecurityModeType getSecurityMode() {
+            SecurityModeType securityModeType = null;
+            if (this == JKS_KS || this == PKCS12_KS) {
+                securityModeType = SecurityModeType.BCPROV_SECURITY_MODE;
+            }
+            else if(this == BCFKS_KS) {
+                securityModeType =  SecurityModeType.BCFIPS_SECURITY_MODE;
+            }
+            return securityModeType;
+        }
+
+        /**
+         * 
+         * @param extension
+         * @return
+         */
+        public static KeyStorageType fromExtension(String extension) {
+            switch(extension.toLowerCase()) {
+            case DEF_EXT_JKS:
+            case DEF_EXT_KEYSTORE:
+            case DEF_EXT_KS: {
+                return JKS_KS;
+            }
+            case DEF_EXT_PKCS12:
+            case DEF_EXT_P12:
+            case DEF_EXT_PFX: {
+                return PKCS12_KS;
+            }
+            case DEF_EXT_BCFKS:
+            case DEF_EXT_BCF:
+            case DEF_EXT_BCFIPS: {
+                return BCFKS_KS;
+            }
+            }
+            return null;
+        }
+    }    
 
     private static final Logger LOG = LoggerFactory.getLogger(SecurityProviderUtility.class);
 
@@ -104,7 +249,7 @@ public class SecurityProviderUtility {
         String providerName = BC_PROVIDER_NAME;
         String className = BC_GENERIC_PROVIDER_CLASS_NAME;
 
-        if (securityMode == null || securityMode == SecurityModeType.BCFKS_SECURITY_MODE) {
+        if (securityMode == null || securityMode == SecurityModeType.BCFIPS_SECURITY_MODE) {
             boolean isFipsMode = checkFipsMode();
             if (isFipsMode) {
                 LOG.info("Fips mode is enabled");
@@ -112,10 +257,10 @@ public class SecurityProviderUtility {
                 providerName = BC_FIPS_PROVIDER_NAME;
                 className = BC_FIPS_PROVIDER_CLASS_NAME;
 
-                securityMode = SecurityModeType.BCFKS_SECURITY_MODE;
+                securityMode = SecurityModeType.BCFIPS_SECURITY_MODE;
             }
             else {
-                securityMode = SecurityModeType.JKS_SECURITY_MODE;
+                securityMode = SecurityModeType.BCPROV_SECURITY_MODE;
             }
         }
 

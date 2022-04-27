@@ -2,6 +2,7 @@ package org.gluu.service.document.store;
 
 import org.gluu.service.document.store.conf.DocumentStoreConfiguration;
 import org.gluu.service.document.store.conf.DocumentStoreType;
+import org.gluu.service.document.store.provider.DBDocumentStoreProvider;
 import org.gluu.service.document.store.provider.DocumentStoreProvider;
 import org.gluu.service.document.store.provider.JcaDocumentStoreProvider;
 import org.gluu.service.document.store.provider.LocalDocumentStoreProvider;
@@ -21,6 +22,9 @@ public class StandaloneDocumentStoreProviderFactory {
 
 	public StandaloneDocumentStoreProviderFactory(StringEncrypter stringEncrypter) {
 		this.stringEncrypter = stringEncrypter;
+	}
+	public StandaloneDocumentStoreProviderFactory() {
+		
 	}
 
 	public DocumentStoreProvider getDocumentStoreProvider(DocumentStoreConfiguration documentStoreConfiguration) {
@@ -63,7 +67,15 @@ public class StandaloneDocumentStoreProviderFactory {
 
 			documentStoreProvider = webDavDocumentStoreProvider;
 			break;
+		case DB:
+			DBDocumentStoreProvider dbDocumentStoreProvider = new DBDocumentStoreProvider();
+			//webDavDocumentStoreProvider.configure(documentStoreConfiguration, stringEncrypter);
+			//webDavDocumentStoreProvider.init();
+
+			documentStoreProvider = dbDocumentStoreProvider;
+			break;
 		}
+		
 
 		if (documentStoreProvider == null) {
 			throw new RuntimeException(

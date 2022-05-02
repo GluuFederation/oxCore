@@ -5,14 +5,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Base64;
+import java.util.Date;
+import java.util.Properties;
+
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
+import org.gluu.persist.PersistenceEntryManager;
+import org.gluu.persist.ldap.impl.LdapEntryManager;
+import org.gluu.persist.ldap.impl.LdapEntryManagerFactory;
+import org.gluu.service.document.store.conf.DBDocumentStoreConfiguration;
+import org.gluu.service.document.store.conf.DocumentStoreConfiguration;
 import org.gluu.service.document.store.conf.DocumentStoreType;
 import org.gluu.service.document.store.service.DBDocumentService;
 import org.gluu.service.document.store.service.OxDocument;
 import org.gluu.util.StringHelper;
+import org.gluu.util.security.StringEncrypter;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Shekhar L. on 26/04/2022
@@ -26,6 +37,15 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 
 	@Inject
 	private DBDocumentService documentService;
+	
+	@Inject
+	private DocumentStoreConfiguration documentStoreConfiguration;
+
+	private DBDocumentStoreConfiguration dbDocumentStoreConfiguration;
+	
+	
+	
+	public static PersistenceEntryManager persistenceEntryManager = null;
 
     public DBDocumentStoreProvider() {
 	}
@@ -33,21 +53,80 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	public DocumentStoreType getProviderType() {
 		return DocumentStoreType.DB;
 	}
+	
+	@PostConstruct
+	public void init() {
+		this.dbDocumentStoreConfiguration = documentStoreConfiguration.getDbDavConfiguration();
+	}
+
+	public void configure(DocumentStoreConfiguration documentStoreConfiguration, StringEncrypter stringEncrypter) {
+		this.log = LoggerFactory.getLogger(DBDocumentStoreProvider.class);
+		this.documentStoreConfiguration = documentStoreConfiguration;
+		//this.stringEncrypter = stringEncrypter;
+	}
+	
+	private Properties getSampleConnectionProperties() {
+        Properties connectionProperties = new Properties();
+
+        /*connectionProperties.put("ldap#bindDN", "cn=Directory Manager");
+        connectionProperties.put("ldap#bindPassword", "gluu2022");
+        connectionProperties.put("ldap#servers", "localhost:1636");
+        connectionProperties.put("ldap#useSSL", "true");
+        connectionProperties.put("ldap#maxconnections", "3");*/
+        
+        connectionProperties.put("ldap#bindDN", dbDocumentStoreConfiguration.getUserId());
+        connectionProperties.put("ldap#bindPassword", dbDocumentStoreConfiguration.getPassword());
+        connectionProperties.put("ldap#servers", dbDocumentStoreConfiguration.getServer());
+        connectionProperties.put("ldap#useSSL", dbDocumentStoreConfiguration.getUseSSL());
+        connectionProperties.put("ldap#maxconnections", dbDocumentStoreConfiguration.getMaxconnections());
+
+        return connectionProperties;
+    }
+
+    public LdapEntryManager createLdapEntryManager() {
+        LdapEntryManagerFactory ldapEntryManagerFactory = new LdapEntryManagerFactory();
+        Properties connectionProperties = getSampleConnectionProperties();
+
+        LdapEntryManager ldapEntryManager = ldapEntryManagerFactory.createEntryManager(connectionProperties);
+        log.debug("Created LdapEntryManager: " + ldapEntryManager);
+
+        return ldapEntryManager;
+    }
+
 
 	@Override
-	public boolean hasDocument(String path) {
-		log.debug("Has document: '{}'", path);
-		if (StringHelper.isEmpty(path)) {
+	public void create() {
+		//final FileConfiguration fileConfiguration = new FileConfiguration(dbDocumentStoreConfiguration.getLdapFilePath());
+		//final Properties props = PropertiesDecrypter.decryptProperties(fileConfiguration.getProperties(), "passoword");
+		//final Properties props = fileConfiguration.getProperties();
+		//final LdapEntryManagerFactory ldapEntryManagerFactory = new LdapEntryManagerFactory(); 
+		//final LdapConnectionProvider connectionProvider = new LdapConnectionProvider(props);
+		//connectionProvider.create();
+		persistenceEntryManager = createLdapEntryManager();
+		//ldapEntryManagerFactory.createEntryManager(props);
+		documentService = new DBDocumentService();
+		documentService.setPersistenceEntryManager(persistenceEntryManager);
+	}
+
+	@Override
+	public void destroy() {
+		persistenceEntryManager.destroy();
+	}
+
+	@Override
+	public boolean hasDocument(String DisplayName) {
+		log.debug("Has document: '{}'", DisplayName);
+		if (StringHelper.isEmpty(DisplayName)) {
 			throw new IllegalArgumentException("Specified path should not be empty!");
 		}		
 		OxDocument oxDocument = null;
 		try {
-			oxDocument = documentService.getOxDocumentByDisplayName(path);
+			oxDocument = documentService.getOxDocumentByDisplayName(DisplayName);
 		} catch (Exception e) {
-			log.error("Failed to check if path '" + path + "' exists in repository", e);
+			log.error("Failed to check if path '" + DisplayName + "' exists in repository", e);
 		}
 
-		return oxDocument != null;
+		return false;
 	}
 
 	@Override
@@ -58,7 +137,12 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 		oxDocument.setDisplayName(name);		
 		try {
 			try {
-				oxDocument.setInum(documentService.generateInumForNewOxDocument());				
+				oxDocument.setInum(documentService.generateInumForNewOxDocument());	
+				String dn = "inum="+ oxDocument.getInum() +",ou=document,o=gluu";
+				oxDocument.setDn(dn);
+				oxDocument.setDescription("Testing the document saving");
+				oxDocument.setOxEnabled("true");
+				oxDocument.setOxModuleProperty("oxtrusr server");
 				documentService.addOxDocument(oxDocument);
 				//persistenceEntryManager.persist(oxDocument);
 				return true;
@@ -81,8 +165,16 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 		 try {
 			String documentContent = Base64.getEncoder().encodeToString(IOUtils.toByteArray(documentStream));
 			oxDocument.setDocument(documentContent);
-			oxDocument.setInum(documentService.generateInumForNewOxDocument());				
+			String inum = documentService.generateInumForNewOxDocument();
+			oxDocument.setInum(inum);	
+			String dn = "inum="+ oxDocument.getInum() +",ou=document,o=gluu";
+			oxDocument.setDn(dn);
+			oxDocument.setDisplayName("Test");
+			oxDocument.setDescription("Testing the document saving");
+			oxDocument.setOxEnabled("true");
+			oxDocument.setOxModuleProperty("oxtrusr server");
 			documentService.addOxDocument(oxDocument);
+			//persistenceEntryManager.persist(oxDocument);
 			return true;
 		} catch (IOException e) {
 			log.error("Failed to write document from stream to file '{}'", name, e);
@@ -95,27 +187,27 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 
 
 	@Override
-	public String readDocument(String inum, Charset charset) {
-		log.debug("Read document: '{}'", inum);		
+	public String readDocument(String name, Charset charset) {
+		log.debug("Read document: '{}'", name);		
 		OxDocument oxDocument;
 		try {
-			oxDocument = documentService.getOxDocumentByInum(inum);
+			oxDocument = documentService.getOxDocumentByDisplayName(name);
 			if(oxDocument != null) {
 				return oxDocument.getDocument();
 			}
 		} catch (Exception e) {
-			log.error("Failed to read document as stream from file '{}'", inum, e);
+			log.error("Failed to read document as stream from file '{}'", name, e);
 			e.printStackTrace();
 		}
 		return null;		
 	}
 
 	@Override
-	public InputStream readDocumentAsStream(String inum) {
-		log.debug("Read document as stream: '{}'", inum);
-		String filecontecnt = readDocument(inum, null);
+	public InputStream readDocumentAsStream(String name) {
+		log.debug("Read document as stream: '{}'", name);
+		String filecontecnt = readDocument(name, null);
 		if (filecontecnt == null) {
-			log.error("Document file '{}' isn't exist", inum);
+			log.error("Document file '{}' isn't exist", name);
 			return null;
 		}
 
@@ -169,18 +261,6 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 			e.printStackTrace();
 		}
 		return false;
-	}
-
-	@Override
-	public void create() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void destroy() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

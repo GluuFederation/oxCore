@@ -23,8 +23,9 @@ public class StandaloneDocumentStoreProviderFactory {
 	public StandaloneDocumentStoreProviderFactory(StringEncrypter stringEncrypter) {
 		this.stringEncrypter = stringEncrypter;
 	}
+	
 	public StandaloneDocumentStoreProviderFactory() {
-		
+		super();
 	}
 
 	public DocumentStoreProvider getDocumentStoreProvider(DocumentStoreConfiguration documentStoreConfiguration) {
@@ -66,11 +67,11 @@ public class StandaloneDocumentStoreProviderFactory {
 			webDavDocumentStoreProvider.init();
 
 			documentStoreProvider = webDavDocumentStoreProvider;
-			break;
+			break;			
 		case DB:
 			DBDocumentStoreProvider dbDocumentStoreProvider = new DBDocumentStoreProvider();
-			//webDavDocumentStoreProvider.configure(documentStoreConfiguration, stringEncrypter);
-			//webDavDocumentStoreProvider.init();
+			dbDocumentStoreProvider.configure(documentStoreConfiguration, stringEncrypter);
+			dbDocumentStoreProvider.init();
 
 			documentStoreProvider = dbDocumentStoreProvider;
 			break;

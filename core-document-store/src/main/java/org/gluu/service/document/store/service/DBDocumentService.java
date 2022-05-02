@@ -9,6 +9,7 @@ package org.gluu.service.document.store.service;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,6 +40,15 @@ public class DBDocumentService implements Serializable {
 	@Inject
 	private Logger logger;
 	
+	public DBDocumentService() {
+		super();
+	}
+	
+	public DBDocumentService(PersistenceEntryManager persistenceEntryManager) {
+		super();
+		this.persistenceEntryManager = persistenceEntryManager;
+	}
+	
 	public static final String inum = "inum";
 	public static final String displayName = "displayName";
 	public static final String description = "description";
@@ -50,6 +60,7 @@ public class DBDocumentService implements Serializable {
 	 *            OxDocument
 	 */
 	public void addOxDocument(OxDocument oxDocument) throws Exception {
+		oxDocument.setCreationDate(new Date());
 		persistenceEntryManager.persist(oxDocument);
 	}
 
@@ -76,7 +87,8 @@ public class DBDocumentService implements Serializable {
 		try {
 			result = persistenceEntryManager.find(OxDocument.class, getDnForOxDocument(inum));
 		} catch (Exception e) {
-			logger.debug("", e);
+			System.out.print(e);
+			//logger.debug("", e);
 		}
 		return result;
 	}
@@ -115,11 +127,9 @@ public class DBDocumentService implements Serializable {
 		OxDocument oxDocument = new OxDocument();
 		String newInum = null;
 		String newDn = null;
-		//do {
-			newInum = generateInumForNewOxDocumentImpl();
-			newDn = getDnForOxDocument(newInum);
-			oxDocument.setDn(newDn);
-		//} while (persistenceEntryManager.contains(newDn, OxDocument.class));
+		newInum = generateInumForNewOxDocumentImpl();
+		newDn = getDnForOxDocument(newInum);
+		oxDocument.setDn(newDn);
 		return newInum;
 	}
 
@@ -192,11 +202,20 @@ public class DBDocumentService implements Serializable {
 	public OxDocument getOxDocumentByDisplayName(String DisplayName) throws Exception {
 		OxDocument oxDocument = new OxDocument();
 		oxDocument.setDisplayName(DisplayName);
+		oxDocument.setDn(getDnForOxDocument(null));;
 		List<OxDocument> oxDocuments = persistenceEntryManager.findEntries(oxDocument);
 		if ((oxDocuments != null) && (oxDocuments.size() > 0)) {
 			return oxDocuments.get(0);
 		}
 		return null;
+	}
+
+	public PersistenceEntryManager getPersistenceEntryManager() {
+		return persistenceEntryManager;
+	}
+
+	public void setPersistenceEntryManager(PersistenceEntryManager persistenceEntryManager) {
+		this.persistenceEntryManager = persistenceEntryManager;
 	}
 
 	/*private List<OxDocument> filter(List<OxDocument> oxDocument) {

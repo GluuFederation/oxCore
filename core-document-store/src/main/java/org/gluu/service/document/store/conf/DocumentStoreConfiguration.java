@@ -22,6 +22,7 @@ public class DocumentStoreConfiguration implements Serializable {
     private JcaDocumentStoreConfiguration jcaConfiguration;
 
     private WebDavDocumentStoreConfiguration webDavConfiguration;
+    private DBDocumentStoreConfiguration dbDavConfiguration;
 
     public DocumentStoreType getDocumentStoreType() {
 		return documentStoreType;
@@ -53,6 +54,14 @@ public class DocumentStoreConfiguration implements Serializable {
 
 	public void setWebDavConfiguration(WebDavDocumentStoreConfiguration webDavConfiguration) {
 		this.webDavConfiguration = webDavConfiguration;
+	}
+
+	public DBDocumentStoreConfiguration getDbDavConfiguration() {
+		return dbDavConfiguration;
+	}
+
+	public void setDbDavConfiguration(DBDocumentStoreConfiguration dbDavConfiguration) {
+		this.dbDavConfiguration = dbDavConfiguration;
 	}
 
 	@Override

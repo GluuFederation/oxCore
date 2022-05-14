@@ -29,9 +29,9 @@ public class SmtpConfiguration implements java.io.Serializable {
 
     @JsonProperty("requires-ssl")
     private boolean requiresSsl;
-    
+
     @JsonProperty("connect-protection")
-    private int connectProtection;    
+    private SmtpConnectProtectionType connectProtection;
 
     @JsonProperty("trust-host")
     private boolean serverTrust;
@@ -79,11 +79,11 @@ public class SmtpConfiguration implements java.io.Serializable {
         this.requiresSsl = requiresSsl;
     }
 
-    public int getConnectProtection() {
+    public SmtpConnectProtectionType getConnectProtection() {
         return connectProtection;
     }
 
-    public void setConnectProtection(int connectProtection) {
+    public void setConnectProtection(SmtpConnectProtectionType connectProtection) {
         this.connectProtection = connectProtection;
     }
 
@@ -147,6 +147,10 @@ public class SmtpConfiguration implements java.io.Serializable {
 
     public void setPasswordDecrypted(String passwordDecrypted) {
         this.passwordDecrypted = passwordDecrypted;
+    }
+    
+    public SmtpConnectProtectionType[] getConnectProtectionList() {
+        return SmtpConnectProtectionType.values();
     }
 
 }

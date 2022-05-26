@@ -44,8 +44,10 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	private DBDocumentStoreConfiguration dbDocumentStoreConfiguration;
 	
 	
+	@Inject
+	private PersistenceEntryManager persistenceEntryManager;
 	
-	public static PersistenceEntryManager persistenceEntryManager = null;
+	private boolean externalPM = false;
 
     public DBDocumentStoreProvider() {
 	}
@@ -56,13 +58,16 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	
 	@PostConstruct
 	public void init() {
-		this.dbDocumentStoreConfiguration = documentStoreConfiguration.getDbDavConfiguration();
+		this.dbDocumentStoreConfiguration = documentStoreConfiguration.getDbConfiguration();
 	}
-
-	public void configure(DocumentStoreConfiguration documentStoreConfiguration, StringEncrypter stringEncrypter) {
+	
+	public void configure(DocumentStoreConfiguration documentStoreConfiguration) {
 		this.log = LoggerFactory.getLogger(DBDocumentStoreProvider.class);
 		this.documentStoreConfiguration = documentStoreConfiguration;
-		//this.stringEncrypter = stringEncrypter;
+		if(dbDocumentStoreConfiguration.getPersistenceEntryManager() != null) {
+			this.persistenceEntryManager = dbDocumentStoreConfiguration.getPersistenceEntryManager();
+			externalPM = true;
+		}
 	}
 	
 	private Properties getSampleConnectionProperties() {
@@ -102,7 +107,9 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 		//final LdapEntryManagerFactory ldapEntryManagerFactory = new LdapEntryManagerFactory(); 
 		//final LdapConnectionProvider connectionProvider = new LdapConnectionProvider(props);
 		//connectionProvider.create();
-		persistenceEntryManager = createLdapEntryManager();
+		if(!externalPM) {
+			persistenceEntryManager = createLdapEntryManager();
+		}
 		//ldapEntryManagerFactory.createEntryManager(props);
 		documentService = new DBDocumentService();
 		documentService.setPersistenceEntryManager(persistenceEntryManager);
@@ -110,7 +117,9 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 
 	@Override
 	public void destroy() {
-		persistenceEntryManager.destroy();
+		if(!externalPM) {
+			persistenceEntryManager.destroy();
+		}
 	}
 
 	@Override

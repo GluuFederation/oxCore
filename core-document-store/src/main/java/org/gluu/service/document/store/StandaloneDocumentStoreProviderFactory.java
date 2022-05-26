@@ -70,7 +70,7 @@ public class StandaloneDocumentStoreProviderFactory {
 			break;			
 		case DB:
 			DBDocumentStoreProvider dbDocumentStoreProvider = new DBDocumentStoreProvider();
-			dbDocumentStoreProvider.configure(documentStoreConfiguration, stringEncrypter);
+			dbDocumentStoreProvider.configure(documentStoreConfiguration);
 			dbDocumentStoreProvider.init();
 
 			documentStoreProvider = dbDocumentStoreProvider;

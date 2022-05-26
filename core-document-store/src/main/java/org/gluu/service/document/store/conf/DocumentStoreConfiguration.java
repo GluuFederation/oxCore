@@ -22,7 +22,7 @@ public class DocumentStoreConfiguration implements Serializable {
     private JcaDocumentStoreConfiguration jcaConfiguration;
 
     private WebDavDocumentStoreConfiguration webDavConfiguration;
-    private DBDocumentStoreConfiguration dbDavConfiguration;
+    private DBDocumentStoreConfiguration dbConfiguration;
 
     public DocumentStoreType getDocumentStoreType() {
 		return documentStoreType;
@@ -56,17 +56,17 @@ public class DocumentStoreConfiguration implements Serializable {
 		this.webDavConfiguration = webDavConfiguration;
 	}
 
-	public DBDocumentStoreConfiguration getDbDavConfiguration() {
-		return dbDavConfiguration;
+	public DBDocumentStoreConfiguration getDbConfiguration() {
+		return dbConfiguration;
 	}
 
-	public void setDbDavConfiguration(DBDocumentStoreConfiguration dbDavConfiguration) {
-		this.dbDavConfiguration = dbDavConfiguration;
+	public void setDbConfiguration(DBDocumentStoreConfiguration dbDavConfiguration) {
+		this.dbConfiguration = dbDavConfiguration;
 	}
 
 	@Override
 	public String toString() {
 		return "DocumentStoreConfiguration [documentStoreType=" + documentStoreType + ", localConfiguration=" + localConfiguration
-				+ ", jcaConfiguration=" + jcaConfiguration + ", webDavConfiguration=" + webDavConfiguration + "]";
+				+ ", jcaConfiguration=" + jcaConfiguration + ", webDavConfiguration=" + webDavConfiguration  + ", DBConfiguration=" + dbConfiguration + "]";
 	}
 }

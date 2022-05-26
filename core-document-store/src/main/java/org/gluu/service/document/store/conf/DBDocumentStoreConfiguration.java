@@ -17,7 +17,7 @@ public class DBDocumentStoreConfiguration implements Serializable {
 	private String server; // http://localhost:8080
 	private String useSSL;
 	private int connectionTimeout;
-	private PersistenceEntryManager MANAGER = null;
+	private PersistenceEntryManager persistenceEntryManager = null;
 	private String maxconnections;
 
 	private String userId;
@@ -49,14 +49,6 @@ public class DBDocumentStoreConfiguration implements Serializable {
 		this.password = password;
 	}
 
-	public PersistenceEntryManager getMANAGER() {
-		return MANAGER;
-	}
-
-	public void setMANAGER(PersistenceEntryManager mANAGER) {
-		MANAGER = mANAGER;
-	}
-
 	public String getServer() {
 		return server;
 	}
@@ -79,6 +71,14 @@ public class DBDocumentStoreConfiguration implements Serializable {
 
 	public void setMaxconnections(String maxconnections) {
 		this.maxconnections = maxconnections;
+	}
+
+	public PersistenceEntryManager getPersistenceEntryManager() {
+		return persistenceEntryManager;
+	}
+
+	public void setPersistenceEntryManager(PersistenceEntryManager persistenceEntryManager) {
+		this.persistenceEntryManager = persistenceEntryManager;
 	}
 
 	@Override

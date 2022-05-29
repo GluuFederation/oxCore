@@ -46,8 +46,6 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	
 	@Inject
 	private PersistenceEntryManager persistenceEntryManager;
-	
-	private boolean externalPM = false;
 
     public DBDocumentStoreProvider() {
 	}
@@ -64,62 +62,18 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	public void configure(DocumentStoreConfiguration documentStoreConfiguration) {
 		this.log = LoggerFactory.getLogger(DBDocumentStoreProvider.class);
 		this.documentStoreConfiguration = documentStoreConfiguration;
-		if(dbDocumentStoreConfiguration.getPersistenceEntryManager() != null) {
-			this.persistenceEntryManager = dbDocumentStoreConfiguration.getPersistenceEntryManager();
-			externalPM = true;
-		}
+		this.persistenceEntryManager = dbDocumentStoreConfiguration.getPersistenceEntryManager();
+		
 	}
-	
-	private Properties getSampleConnectionProperties() {
-        Properties connectionProperties = new Properties();
-
-        /*connectionProperties.put("ldap#bindDN", "cn=Directory Manager");
-        connectionProperties.put("ldap#bindPassword", "gluu2022");
-        connectionProperties.put("ldap#servers", "localhost:1636");
-        connectionProperties.put("ldap#useSSL", "true");
-        connectionProperties.put("ldap#maxconnections", "3");*/
-        
-        connectionProperties.put("ldap#bindDN", dbDocumentStoreConfiguration.getUserId());
-        connectionProperties.put("ldap#bindPassword", dbDocumentStoreConfiguration.getPassword());
-        connectionProperties.put("ldap#servers", dbDocumentStoreConfiguration.getServer());
-        connectionProperties.put("ldap#useSSL", dbDocumentStoreConfiguration.getUseSSL());
-        connectionProperties.put("ldap#maxconnections", dbDocumentStoreConfiguration.getMaxconnections());
-
-        return connectionProperties;
-    }
-
-    public LdapEntryManager createLdapEntryManager() {
-        LdapEntryManagerFactory ldapEntryManagerFactory = new LdapEntryManagerFactory();
-        Properties connectionProperties = getSampleConnectionProperties();
-
-        LdapEntryManager ldapEntryManager = ldapEntryManagerFactory.createEntryManager(connectionProperties);
-        log.debug("Created LdapEntryManager: " + ldapEntryManager);
-
-        return ldapEntryManager;
-    }
-
 
 	@Override
 	public void create() {
-		//final FileConfiguration fileConfiguration = new FileConfiguration(dbDocumentStoreConfiguration.getLdapFilePath());
-		//final Properties props = PropertiesDecrypter.decryptProperties(fileConfiguration.getProperties(), "passoword");
-		//final Properties props = fileConfiguration.getProperties();
-		//final LdapEntryManagerFactory ldapEntryManagerFactory = new LdapEntryManagerFactory(); 
-		//final LdapConnectionProvider connectionProvider = new LdapConnectionProvider(props);
-		//connectionProvider.create();
-		if(!externalPM) {
-			persistenceEntryManager = createLdapEntryManager();
-		}
-		//ldapEntryManagerFactory.createEntryManager(props);
-		documentService = new DBDocumentService();
-		documentService.setPersistenceEntryManager(persistenceEntryManager);
+		
 	}
 
 	@Override
 	public void destroy() {
-		if(!externalPM) {
-			persistenceEntryManager.destroy();
-		}
+		
 	}
 
 	@Override

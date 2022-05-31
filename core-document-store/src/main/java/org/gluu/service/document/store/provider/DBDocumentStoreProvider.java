@@ -13,8 +13,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.gluu.persist.PersistenceEntryManager;
-import org.gluu.persist.ldap.impl.LdapEntryManager;
-import org.gluu.persist.ldap.impl.LdapEntryManagerFactory;
 import org.gluu.service.document.store.conf.DBDocumentStoreConfiguration;
 import org.gluu.service.document.store.conf.DocumentStoreConfiguration;
 import org.gluu.service.document.store.conf.DocumentStoreType;

@@ -87,8 +87,7 @@ public class DBDocumentService implements Serializable {
 		try {
 			result = persistenceEntryManager.find(OxDocument.class, getDnForOxDocument(inum));
 		} catch (Exception e) {
-			System.out.print(e);
-			//logger.debug("", e);
+			logger.error("Not able to find the oxDocument. Here is the exception message ", e);
 		}
 		return result;
 	}
@@ -158,7 +157,7 @@ public class DBDocumentService implements Serializable {
 			result = persistenceEntryManager.findEntries(getDnForOxDocument(null), OxDocument.class, searchFilter, sizeLimit);
 			return result;
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Failed to find OxDocument : ", e);
 		}
 		return result;
 	}
@@ -178,7 +177,7 @@ public class DBDocumentService implements Serializable {
 			List<OxDocument> oxDocuments = persistenceEntryManager.findEntries(getDnForOxDocument(null), OxDocument.class, null, size);
 			return oxDocuments;
 		} catch (Exception e) {
-			logger.error("", e);
+			logger.error("Failed to find OxDocument: ", e);
 			return new ArrayList<>();
 		}
 	}

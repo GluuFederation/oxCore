@@ -70,7 +70,7 @@ public class StandaloneDocumentStoreProviderFactory {
 			break;			
 		case DB:
 			DBDocumentStoreProvider dbDocumentStoreProvider = new DBDocumentStoreProvider();
-			dbDocumentStoreProvider.configure(documentStoreConfiguration);
+			dbDocumentStoreProvider.configure(documentStoreConfiguration,documentStoreConfiguration.getDbConfiguration().getPersistenceEntryManager());
 			dbDocumentStoreProvider.init();
 
 			documentStoreProvider = dbDocumentStoreProvider;

@@ -59,10 +59,10 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 		this.dbDocumentStoreConfiguration = documentStoreConfiguration.getDbConfiguration();
 	}
 	
-	public void configure(DocumentStoreConfiguration documentStoreConfiguration) {
+	public void configure(DocumentStoreConfiguration documentStoreConfiguration,PersistenceEntryManager persistenceManager) {
 		this.log = LoggerFactory.getLogger(DBDocumentStoreProvider.class);
 		this.documentStoreConfiguration = documentStoreConfiguration;
-		this.persistenceEntryManager = dbDocumentStoreConfiguration.getPersistenceEntryManager();
+		this.persistenceEntryManager = persistenceManager;
 		
 	}
 
@@ -160,7 +160,6 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 			}
 		} catch (Exception e) {
 			log.error("Failed to read document as stream from file '{}'", name, e);
-			e.printStackTrace();
 		}
 		return null;		
 	}
@@ -197,7 +196,6 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 			}
 		} catch (Exception e) {
 			log.error("Failed to rename to destination file '{}'", destinationDisplayName);
-			e.printStackTrace();
 		}
 		return true;
 	}
@@ -221,7 +219,6 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 			return false;
 		} catch (Exception e) {
 			log.error("Failed to remove document file '{}'", inum, e);
-			e.printStackTrace();
 		}
 		return false;
 	}

@@ -41,7 +41,6 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 
 	private DBDocumentStoreConfiguration dbDocumentStoreConfiguration;
 	
-	
 	@Inject
 	private PersistenceEntryManager persistenceEntryManager;
 
@@ -57,7 +56,7 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 		this.dbDocumentStoreConfiguration = documentStoreConfiguration.getDbConfiguration();
 	}
 	
-	public void configure(DocumentStoreConfiguration documentStoreConfiguration,PersistenceEntryManager persistenceManager) {
+	public void configure(DocumentStoreConfiguration documentStoreConfiguration, PersistenceEntryManager persistenceManager) {
 		this.log = LoggerFactory.getLogger(DBDocumentStoreProvider.class);
 		this.documentStoreConfiguration = documentStoreConfiguration;
 		this.persistenceEntryManager = persistenceManager;

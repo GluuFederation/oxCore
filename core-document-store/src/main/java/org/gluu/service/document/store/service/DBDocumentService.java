@@ -22,6 +22,7 @@ import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides operations with OxDocument
@@ -47,6 +48,7 @@ public class DBDocumentService implements Serializable {
 	public DBDocumentService(PersistenceEntryManager persistenceEntryManager) {
 		super();
 		this.persistenceEntryManager = persistenceEntryManager;
+		this.logger = LoggerFactory.getLogger(DBDocumentService.class);
 	}
 	
 	public static final String inum = "inum";

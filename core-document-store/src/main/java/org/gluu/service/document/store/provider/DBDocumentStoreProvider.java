@@ -60,6 +60,8 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 		this.log = LoggerFactory.getLogger(DBDocumentStoreProvider.class);
 		this.documentStoreConfiguration = documentStoreConfiguration;
 		this.persistenceEntryManager = persistenceManager;
+		if(documentService == null)
+			this.documentService = new DBDocumentService(persistenceEntryManager);
 		
 	}
 

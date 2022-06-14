@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.type.BaseExternalType;
-import org.gluu.persist.exception.extension.PersistenceExtension;
+import org.gluu.persist.extension.PersistenceExtension;
 
 /**
  * Base interface for persistence script

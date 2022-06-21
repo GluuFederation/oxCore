@@ -5,6 +5,7 @@
  */
 package org.gluu.saml.metadata;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,6 +19,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gluu.service.document.store.service.DocumentStoreService;
 import org.gluu.util.io.HTTPFileDownloader;
@@ -55,6 +57,21 @@ public class SAMLMetadataParser {
            return null;
         }
     }
+    
+    public List<String> getEntityIdFromMetadataFile(File metadataFile) {
+        if (!metadataFile.isFile()) {
+            return null;
+        }
+        EntityIDHandler handler = parseMetadata(metadataFile);
+
+        List<String> entityIds = handler.getEntityIDs();
+
+        if (entityIds == null || entityIds.isEmpty()) {
+        	log.error("Failed to find entityId in metadata file: " + metadataFile.getAbsolutePath());
+        }
+
+        return entityIds;
+    }
 
     public List<String> getSpEntityIdFromMetadataFile(String metadataFile) {
         EntityIDHandler handler = parseMetadata(metadataFile);
@@ -85,6 +102,25 @@ public class SAMLMetadataParser {
             return parseMetadata(is);
         } catch (Exception ex) {
             log.error("Failed to read SAML metadata file: " + metadataFile, ex);
+            return null;
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+    
+    public EntityIDHandler parseMetadata(File metadataFile) {
+        if (!metadataFile.exists()) {
+            log.error("Failed to get entityId from metadata file: " + metadataFile.getAbsolutePath());
+            return null;
+        }
+
+        InputStream is = null;
+        try {
+            is = FileUtils.openInputStream(metadataFile);
+        
+            return parseMetadata(is);
+        } catch (IOException ex) {
+            log.error("Failed to read SAML metadata file: " + metadataFile.getAbsolutePath(), ex);
             return null;
         } finally {
             IOUtils.closeQuietly(is);

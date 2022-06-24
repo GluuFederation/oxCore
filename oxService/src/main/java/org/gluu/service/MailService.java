@@ -8,6 +8,10 @@ package org.gluu.service;
 import java.util.Date;
 import java.util.Properties;
 
+import javax.activation.CommandMap;
+import javax.activation.MailcapCommandMap;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -22,6 +26,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.gluu.model.SmtpConfiguration;
+import org.gluu.model.SmtpConnectProtectionType;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
@@ -66,6 +71,13 @@ public class MailService {
         log.debug("Host name: " + mailSmtpConfiguration.getHost() + ", port: " + mailSmtpConfiguration.getPort() + ", connection time out: "
                 + this.connectionTimeout);
 
+        MailcapCommandMap mc = (MailcapCommandMap) CommandMap.getDefaultCommandMap(); 
+        mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html"); 
+        mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml"); 
+        mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain"); 
+        mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed"); 
+        mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
+
         String mailFrom = from;
         if (StringHelper.isEmpty(mailFrom)) {
             mailFrom = mailSmtpConfiguration.getFromEmailAddress();
@@ -83,12 +95,20 @@ public class MailService {
         props.put("mail.smtp.connectiontimeout", this.connectionTimeout);
         props.put("mail.smtp.timeout", this.connectionTimeout);
         props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
 
-        if (mailSmtpConfiguration.isRequiresSsl()) {
-            props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
-            props.put("mail.smtp.starttls.enable", true);
+        SmtpConnectProtectionType smtpConnectProtect = mailSmtpConfiguration.getConnectProtection();
+
+        if (smtpConnectProtect == SmtpConnectProtectionType.StartTls) {
             props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
+            props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
+            props.put("mail.smtp.starttls.enable", true);
+        }
+        else if (smtpConnectProtect == SmtpConnectProtectionType.SslTls) {
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
+            props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
+            props.put("mail.smtp.ssl.enable", true);
         }
 
         Session session = null;

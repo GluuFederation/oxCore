@@ -14,12 +14,13 @@ import org.gluu.persist.annotation.AttributeEnum;
  */
 public enum SmtpConnectProtectionType implements AttributeEnum {
 
-    None("None", "None"), StartTls("StartTls", "STARTTLS"), SslTls("SslTls", "SSL/TLS");
+    None("None", "NONE"), StartTls("StartTls", "STARTTLS"), SslTls("SslTls", "SSL/TLS");
 
     private String value;
     private String displayName;
     
     private static final Map<String, SmtpConnectProtectionType> mapByValues = new HashMap<String, SmtpConnectProtectionType>();
+
     static {
         for (SmtpConnectProtectionType enumType : values()) {
             mapByValues.put(enumType.getValue(), enumType);

@@ -48,7 +48,16 @@
 			<artifactId>oxcore-util</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>gluu-orm-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gluu</groupId>
+			<artifactId>gluu-orm-annotation</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<!-- CDI -->
 		<dependency>
 			<groupId>javax.enterprise</groupId>

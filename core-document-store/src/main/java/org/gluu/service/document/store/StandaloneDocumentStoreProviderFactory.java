@@ -1,7 +1,9 @@
 package org.gluu.service.document.store;
 
+import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.service.document.store.conf.DocumentStoreConfiguration;
 import org.gluu.service.document.store.conf.DocumentStoreType;
+import org.gluu.service.document.store.provider.DBDocumentStoreProvider;
 import org.gluu.service.document.store.provider.DocumentStoreProvider;
 import org.gluu.service.document.store.provider.JcaDocumentStoreProvider;
 import org.gluu.service.document.store.provider.LocalDocumentStoreProvider;
@@ -18,9 +20,17 @@ public class StandaloneDocumentStoreProviderFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(StandaloneDocumentStoreProviderFactory.class);
 
 	private StringEncrypter stringEncrypter;
+	private PersistenceEntryManager persistenceEntryManager;
+
+	public StandaloneDocumentStoreProviderFactory() {
+	}
 
 	public StandaloneDocumentStoreProviderFactory(StringEncrypter stringEncrypter) {
 		this.stringEncrypter = stringEncrypter;
+	}
+	
+	public StandaloneDocumentStoreProviderFactory(PersistenceEntryManager persistenceEntryManager) {
+		this.persistenceEntryManager = persistenceEntryManager;
 	}
 
 	public DocumentStoreProvider getDocumentStoreProvider(DocumentStoreConfiguration documentStoreConfiguration) {
@@ -62,8 +72,16 @@ public class StandaloneDocumentStoreProviderFactory {
 			webDavDocumentStoreProvider.init();
 
 			documentStoreProvider = webDavDocumentStoreProvider;
+			break;			
+		case DB:
+			DBDocumentStoreProvider dbDocumentStoreProvider = new DBDocumentStoreProvider();
+			dbDocumentStoreProvider.configure(documentStoreConfiguration, persistenceEntryManager);
+			dbDocumentStoreProvider.init();
+
+			documentStoreProvider = dbDocumentStoreProvider;
 			break;
 		}
+		
 
 		if (documentStoreProvider == null) {
 			throw new RuntimeException(

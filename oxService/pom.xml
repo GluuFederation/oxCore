@@ -160,6 +160,21 @@
 			<artifactId>aalto-xml</artifactId>
 			<version>1.2.1</version>
 		</dependency>
+
+		<!-- Bouncycastle -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcmail-jdk15on</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 </project>

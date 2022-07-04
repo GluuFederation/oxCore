@@ -61,6 +61,9 @@ public class SmtpConfiguration implements java.io.Serializable {
     @JsonProperty("key-store-alias")
     private String keyStoreAlias;
 
+    @JsonProperty("signing-algorithm")
+    private String signingAlgorithm;
+
     public String getHost() {
         return host;
     }
@@ -175,4 +178,11 @@ public class SmtpConfiguration implements java.io.Serializable {
         this.keyStoreAlias = keyStoreAlias;
     }
 
+    public String getSigningAlgorithm() {
+        return signingAlgorithm;
+    }
+
+    public void setSigningAlgorithm(String signingAlgorithm) {
+        this.signingAlgorithm = signingAlgorithm;
+    }
 }

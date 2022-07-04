@@ -52,6 +52,18 @@ public class SmtpConfiguration implements java.io.Serializable {
     @JsonIgnore
     private String passwordDecrypted;
 
+    @JsonProperty("key-store")
+    private String keyStore;
+
+    @JsonProperty("key-store-password")
+    private String keyStorePassword;
+
+    @JsonProperty("key-store-alias")
+    private String keyStoreAlias;
+
+    @JsonProperty("signing-algorithm")
+    private String signingAlgorithm;
+
     public String getHost() {
         return host;
     }
@@ -138,4 +150,11 @@ public class SmtpConfiguration implements java.io.Serializable {
         this.passwordDecrypted = passwordDecrypted;
     }
 
+    public String getSigningAlgorithm() {
+        return signingAlgorithm;
+    }
+
+    public void setSigningAlgorithm(String signingAlgorithm) {
+        this.signingAlgorithm = signingAlgorithm;
+    }
 }

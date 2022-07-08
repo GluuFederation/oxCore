@@ -8,13 +8,13 @@ package org.gluu.service.document.store.service;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -22,7 +22,6 @@ import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Provides operations with OxDocument
@@ -36,24 +35,31 @@ public class DBDocumentService implements Serializable {
 	private static final long serialVersionUID = 65734145678106186L;
 
 	@Inject
-	private PersistenceEntryManager persistenceEntryManager;
-
-	@Inject
 	private Logger logger;
 	
-	public DBDocumentService() {
-		super();
-	}
-	
+	@Inject
+	private Instance<PersistenceEntryManager> persistenceEntryManagerInstance;
+
+	private PersistenceEntryManager persistenceEntryManager;
+
+	public DBDocumentService() {}
+
 	public DBDocumentService(PersistenceEntryManager persistenceEntryManager) {
-		super();
 		this.persistenceEntryManager = persistenceEntryManager;
-		this.logger = LoggerFactory.getLogger(DBDocumentService.class);
 	}
 	
 	public static final String inum = "inum";
 	public static final String displayName = "displayName";
 	public static final String description = "description";
+
+	@PostConstruct
+	public void init() {
+		if (persistenceEntryManagerInstance.isResolvable()) {
+			this.persistenceEntryManager = persistenceEntryManagerInstance.get();
+		} else {
+			this.persistenceEntryManager = null;
+		}
+	}
 
 	/**
 	 * Add new OxDocument entry
@@ -210,20 +216,4 @@ public class DBDocumentService implements Serializable {
 		}
 		return null;
 	}
-
-	public PersistenceEntryManager getPersistenceEntryManager() {
-		return persistenceEntryManager;
-	}
-
-	public void setPersistenceEntryManager(PersistenceEntryManager persistenceEntryManager) {
-		this.persistenceEntryManager = persistenceEntryManager;
-	}
-
-	/*private List<OxDocument> filter(List<OxDocument> oxDocument) {
-		if (oxDocument != null) {
-			return oxDocument.stream().filter(e -> !e.isUmaType()).collect(Collectors.toList());
-		} else {
-			return new ArrayList<>();
-		}
-	}*/
 }

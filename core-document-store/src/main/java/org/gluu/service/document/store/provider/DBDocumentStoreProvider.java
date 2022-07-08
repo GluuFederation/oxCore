@@ -5,12 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Base64;
-import java.util.Date;
-import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
 import org.apache.commons.io.IOUtils;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.service.document.store.conf.DBDocumentStoreConfiguration;
@@ -19,7 +18,6 @@ import org.gluu.service.document.store.conf.DocumentStoreType;
 import org.gluu.service.document.store.service.DBDocumentService;
 import org.gluu.service.document.store.service.OxDocument;
 import org.gluu.util.StringHelper;
-import org.gluu.util.security.StringEncrypter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +29,6 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 
 	@Inject
 	private Logger log;
-	
 
 	@Inject
 	private DBDocumentService documentService;
@@ -40,12 +37,6 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	private DocumentStoreConfiguration documentStoreConfiguration;
 
 	private DBDocumentStoreConfiguration dbDocumentStoreConfiguration;
-	
-	@Inject
-	private PersistenceEntryManager persistenceEntryManager;
-
-    public DBDocumentStoreProvider() {
-	}
 
 	public DocumentStoreType getProviderType() {
 		return DocumentStoreType.DB;
@@ -56,13 +47,12 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 		this.dbDocumentStoreConfiguration = documentStoreConfiguration.getDbConfiguration();
 	}
 	
-	public void configure(DocumentStoreConfiguration documentStoreConfiguration, PersistenceEntryManager persistenceManager) {
+	public void configure(DocumentStoreConfiguration documentStoreConfiguration, PersistenceEntryManager persistenceEntryManager) {
 		this.log = LoggerFactory.getLogger(DBDocumentStoreProvider.class);
 		this.documentStoreConfiguration = documentStoreConfiguration;
-		this.persistenceEntryManager = persistenceManager;
-		if(documentService == null)
+		if(documentService == null) {
 			this.documentService = new DBDocumentService(persistenceEntryManager);
-		
+		}
 	}
 
 	@Override

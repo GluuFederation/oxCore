@@ -7,6 +7,7 @@ package org.gluu.service;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.security.InvalidParameterException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -34,6 +35,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.apache.commons.io.FilenameUtils;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.asn1.smime.SMIMECapabilitiesAttribute;
@@ -47,9 +49,11 @@ import org.bouncycastle.mail.smime.SMIMESignedGenerator;
 import org.bouncycastle.mail.smime.SMIMEUtil;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.Store;
+
 import org.gluu.model.SmtpConfiguration;
 import org.gluu.util.StringHelper;
 import org.gluu.util.security.SecurityProviderUtility;
+
 import org.slf4j.Logger;
 
 /**
@@ -83,8 +87,23 @@ public class MailService {
         String keystoreFile = smtpConfiguration.getKeyStore();
         String keystoreSecret = smtpConfiguration.getKeyStorePassword();
 
+        SecurityProviderUtility.KeyStorageType keystoreType = solveKeyStorageType(keystoreFile);
+
         try(InputStream is = new FileInputStream(keystoreFile)) {
-            keyStore = KeyStore.getInstance("PKCS12", SecurityProviderUtility.getBCProvider());
+            switch (keystoreType) {
+            case JKS_KS: {
+                keyStore = KeyStore.getInstance("JKS");
+                break;
+            }
+            case PKCS12_KS: {
+                keyStore = KeyStore.getInstance("PKCS12", SecurityProviderUtility.getBCProvider());
+                break;
+            }
+            case BCFKS_KS: {
+                keyStore = KeyStore.getInstance("BCFKS", SecurityProviderUtility.getBCProvider());
+                break;
+            }
+            }
             keyStore.load(is, keystoreSecret.toCharArray());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -245,31 +264,56 @@ public class MailService {
         }
 
         Properties props = new Properties();
-        props.put("mail.smtp.host", mailSmtpConfiguration.getHost());
-        props.put("mail.smtp.port", mailSmtpConfiguration.getPort());
+
         props.put("mail.from", mailFrom);
-        props.put("mail.smtp.connectiontimeout", this.connectionTimeout);
-        props.put("mail.smtp.timeout", this.connectionTimeout);
-        props.put("mail.transport.protocol", "smtp");
 
         SmtpConnectProtectionType smtpConnectProtect = mailSmtpConfiguration.getConnectProtection();
 
         if (smtpConnectProtect == SmtpConnectProtectionType.StartTls) {
-            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.transport.protocol", "smtp");
+
+            props.put("mail.smtp.host", mailSmtpConfiguration.getHost());
+            props.put("mail.smtp.port", mailSmtpConfiguration.getPort());
+            props.put("mail.smtp.connectiontimeout", this.connectionTimeout);
+            props.put("mail.smtp.timeout", this.connectionTimeout);
+
+            props.put("mail.smtp.socketFactory.class", "com.sun.mail.util.MailSSLSocketFactory");
             props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
             props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
             props.put("mail.smtp.starttls.enable", true);
+            props.put("mail.smtp.starttls.required", true);            
         }
         else if (smtpConnectProtect == SmtpConnectProtectionType.SslTls) {
-            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.transport.protocol.rfc822", "smtps");
+
+            props.put("mail.smtps.host", mailSmtpConfiguration.getHost());
+            props.put("mail.smtps.port", mailSmtpConfiguration.getPort());
+            props.put("mail.smtps.connectiontimeout", this.connectionTimeout);
+            props.put("mail.smtps.timeout", this.connectionTimeout);
+
+            props.put("mail.smtp.socketFactory.class", "com.sun.mail.util.MailSSLSocketFactory");
             props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
             props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
             props.put("mail.smtp.ssl.enable", true);
+        } 
+        else {
+            props.put("mail.transport.protocol", "smtp");
+
+            props.put("mail.smtp.host", mailSmtpConfiguration.getHost());
+            props.put("mail.smtp.port", mailSmtpConfiguration.getPort());
+            props.put("mail.smtp.connectiontimeout", this.connectionTimeout);
+            props.put("mail.smtp.timeout", this.connectionTimeout);
         }
 
         Session session = null;
         if (mailSmtpConfiguration.isRequiresAuthentication()) {
-            props.put("mail.smtp.auth", "true");
+            
+            if (smtpConnectProtect == SmtpConnectProtectionType.SslTls) {
+                props.put("mail.smtps.auth", "true");
+            }
+            else {
+                props.put("mail.smtp.auth", "true");
+            }
 
             final String userName = mailSmtpConfiguration.getUserName();
             final String password = mailSmtpConfiguration.getPasswordDecrypted();
@@ -379,6 +423,39 @@ public class MailService {
         gen.addCertificates(certs);
 
         return gen.generate(mm);
+    }
+
+    /**
+     * 
+     * @return
+     */
+    private SecurityProviderUtility.KeyStorageType solveKeyStorageType(final String keyStoreFile) {
+        SecurityProviderUtility.SecurityModeType securityMode = SecurityProviderUtility.getSecurityMode();
+        if (securityMode == null) {
+            throw new InvalidParameterException("Security Mode wasn't initialized. Call installBCProvider() before");
+        }
+        String keyStoreExt = FilenameUtils.getExtension(keyStoreFile);
+        SecurityProviderUtility.KeyStorageType keyStorageType = SecurityProviderUtility.KeyStorageType.fromExtension(keyStoreExt);
+        boolean ksTypeFound = false;
+        for (SecurityProviderUtility.KeyStorageType ksType : securityMode.getKeystorageTypes()) {
+            if (keyStorageType == ksType) {
+                ksTypeFound = true;
+                break;
+            }
+        }
+        if (!ksTypeFound) {
+            switch (securityMode) {
+            case BCFIPS_SECURITY_MODE: {
+                keyStorageType =  SecurityProviderUtility.KeyStorageType.BCFKS_KS;
+                break;
+            }
+            case BCPROV_SECURITY_MODE: {
+                keyStorageType = SecurityProviderUtility.KeyStorageType.PKCS12_KS;
+                break;
+            }
+            }
+        }
+        return keyStorageType;
     }
 
 }

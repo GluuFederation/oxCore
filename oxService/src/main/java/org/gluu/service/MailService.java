@@ -288,9 +288,11 @@ public class MailService {
 
             props.put("mail.smtp.socketFactory.class", "com.sun.mail.util.MailSSLSocketFactory");
             props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
-            props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
+            if (mailSmtpConfiguration.isServerTrust()) {
+                props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
+            }
             props.put("mail.smtp.starttls.enable", true);
-            props.put("mail.smtp.starttls.required", true);            
+            props.put("mail.smtp.starttls.required", true);
         }
         else if (smtpConnectProtect == SmtpConnectProtectionType.SslTls) {
             props.put("mail.transport.protocol.rfc822", "smtps");
@@ -302,7 +304,9 @@ public class MailService {
 
             props.put("mail.smtp.socketFactory.class", "com.sun.mail.util.MailSSLSocketFactory");
             props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
-            props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
+            if (mailSmtpConfiguration.isServerTrust()) {
+                props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
+            }
             props.put("mail.smtp.ssl.enable", true);
         } 
         else {

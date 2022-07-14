@@ -92,7 +92,7 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 				oxDocument.setInum(documentService.generateInumForNewOxDocument());	
 				String dn = "inum="+ oxDocument.getInum() +",ou=document,o=gluu";
 				oxDocument.setDn(dn);
-				oxDocument.setDescription("Testing the document saving");
+				oxDocument.setDescription(name);
 				oxDocument.setOxEnabled("true");
 				oxDocument.setOxModuleProperty("oxtrusr server");
 				documentService.addOxDocument(oxDocument);
@@ -121,8 +121,7 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 			oxDocument.setInum(inum);	
 			String dn = "inum="+ oxDocument.getInum() +",ou=document,o=gluu";
 			oxDocument.setDn(dn);
-			oxDocument.setDisplayName("Test");
-			oxDocument.setDescription("Testing the document saving");
+			oxDocument.setDescription(name);
 			oxDocument.setOxEnabled("true");
 			oxDocument.setOxModuleProperty("oxtrusr server");
 			documentService.addOxDocument(oxDocument);

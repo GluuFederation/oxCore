@@ -74,8 +74,6 @@ public class AppConfiguration implements Configuration, Serializable {
 
     private String shibboleth3FederationRootDir;
 
-    private String caCertsLocation;
-    private String caCertsPassphrase;
     private String tempCertDir;
     private String certDir;
 
@@ -407,22 +405,6 @@ public class AppConfiguration implements Configuration, Serializable {
 
     public void setShibboleth3FederationRootDir(String shibboleth3FederationRootDir) {
         this.shibboleth3FederationRootDir = shibboleth3FederationRootDir;
-    }
-
-    public String getCaCertsLocation() {
-        return caCertsLocation;
-    }
-
-    public void setCaCertsLocation(String caCertsLocation) {
-        this.caCertsLocation = caCertsLocation;
-    }
-
-    public String getCaCertsPassphrase() {
-        return caCertsPassphrase;
-    }
-
-    public void setCaCertsPassphrase(String caCertsPassphrase) {
-        this.caCertsPassphrase = caCertsPassphrase;
     }
 
     public String getTempCertDir() {

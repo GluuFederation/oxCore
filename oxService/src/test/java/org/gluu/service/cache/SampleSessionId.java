@@ -1,6 +1,5 @@
 package org.gluu.service.cache;
 
-import com.couchbase.client.java.cluster.User;
 import com.google.common.collect.Maps;
 import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.DN;
@@ -63,9 +62,6 @@ public class SampleSessionId implements Serializable {
 
     @Transient
     private transient boolean persisted;
-
-    @Transient
-    private User user;
 
     public SampleSessionId() {
     }
@@ -147,14 +143,6 @@ public class SampleSessionId implements Serializable {
 
     public void setUserDn(String p_userDn) {
         userDn = p_userDn != null ? p_userDn : "";
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public Date getAuthenticationTime() {

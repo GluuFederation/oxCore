@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
 
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ScimProperties implements Serializable {
 
@@ -14,6 +13,8 @@ public class ScimProperties implements Serializable {
     private static final long serialVersionUID = -5154249316054593386L;
 
     private int maxCount;
+    private int bulkMaxOperations;
+    private long bulkMaxPayloadSize;
     
     private ScimMode protectionMode;
     
@@ -25,6 +26,22 @@ public class ScimProperties implements Serializable {
 
     public void setMaxCount(int maxCount) {
         this.maxCount = maxCount;
+    }
+    
+    public int getBulkMaxOperations() {
+        return bulkMaxOperations;
+    }
+    
+    public void setBulkMaxOperations(int bulkMaxOperations) {
+        this.bulkMaxOperations = bulkMaxOperations;
+    }
+    
+    public long getBulkMaxPayloadSize() {
+        return bulkMaxPayloadSize;
+    }
+    
+    public void setBulkMaxPayloadSize(long bulkMaxPayloadSize) {
+        this.bulkMaxPayloadSize = bulkMaxPayloadSize;
     }
     
     public ScimMode getProtectionMode() {

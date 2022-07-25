@@ -510,10 +510,6 @@ public final class StringHelper {
     }
 
     public static boolean isEmptyString(Object string) {
-    	if (string == null) {
-    		return false;
-    	}
-
         return !(string instanceof String) || isEmpty((String) string);
     }
 

@@ -10,11 +10,11 @@ import java.io.InputStream;
 import java.security.InvalidParameterException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -48,7 +48,6 @@ import org.bouncycastle.mail.smime.SMIMEException;
 import org.bouncycastle.mail.smime.SMIMESignedGenerator;
 import org.bouncycastle.mail.smime.SMIMEUtil;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.util.Store;
 
 import org.gluu.model.SmtpConfiguration;
 import org.gluu.util.StringHelper;
@@ -237,18 +236,15 @@ public class MailService {
 
         log.debug("Host name: " + mailSmtpConfiguration.getHost() + ", port: " + mailSmtpConfiguration.getPort() + ", connection time out: "
                 + this.connectionTimeout);
-        
+
         PrivateKey privateKey = null;
 
-        Certificate certificate = null; 
-        X509Certificate x509Certificate = null;
+        X509Certificate[] certificates = null;
 
         try {
             privateKey = (PrivateKey)keyStore.getKey(mailSmtpConfiguration.getKeyStoreAlias(),
                     smtpConfiguration.getKeyStorePassword().toCharArray());
-            
-            certificate = keyStore.getCertificate(smtpConfiguration.getKeyStoreAlias());
-            x509Certificate = (X509Certificate)certificate;
+            certificates = (X509Certificate[])keyStore.getCertificateChain(mailSmtpConfiguration.getKeyStoreAlias());
         } catch (Exception e) {
             log.error(e.getMessage());
         }
@@ -360,7 +356,7 @@ public class MailService {
                 // Set Multipart as the message's content
                 msg.setContent(mp);
 
-                MimeMultipart multiPart = createMultipartWithSignature(privateKey, x509Certificate, smtpConfiguration.getSigningAlgorithm(), msg);
+                MimeMultipart multiPart = createMultipartWithSignature(privateKey, certificates, smtpConfiguration.getSigningAlgorithm(), msg);                
 
                 msg.setContent(multiPart);
             }
@@ -413,16 +409,47 @@ public class MailService {
     public static MimeMultipart createMultipartWithSignature(PrivateKey key, X509Certificate cert, String signingAlgorithm, MimeMessage mm) throws CertificateEncodingException, CertificateParsingException, OperatorCreationException, SMIMEException {
         List<X509Certificate> certList = new ArrayList<X509Certificate>();
         certList.add(cert);
-        Store certs = new JcaCertStore(certList);
+
+        JcaCertStore certs = new JcaCertStore(certList);
         ASN1EncodableVector signedAttrs = generateSignedAttributes(cert);
 
         SMIMESignedGenerator gen = new SMIMESignedGenerator();
-        
+
         if (signingAlgorithm == null || signingAlgorithm.isEmpty()) {
             signingAlgorithm = cert.getSigAlgName();
         }
 
         gen.addSignerInfoGenerator(new JcaSimpleSignerInfoGeneratorBuilder().setProvider(SecurityProviderUtility.getBCProvider()).setSignedAttributeGenerator(new AttributeTable(signedAttrs)).build(signingAlgorithm, key, cert));        
+
+        gen.addCertificates(certs);
+
+        return gen.generate(mm);
+    }
+
+    /**
+     * 
+     * @param key
+     * @param inCerts
+     * @param signingAlgorithm
+     * @param mm
+     * @return
+     * @throws CertificateEncodingException
+     * @throws CertificateParsingException
+     * @throws OperatorCreationException
+     * @throws SMIMEException
+     */
+    public static MimeMultipart createMultipartWithSignature(PrivateKey key, X509Certificate[] inCerts, String signingAlgorithm, MimeMessage mm) throws CertificateEncodingException, CertificateParsingException, OperatorCreationException, SMIMEException {
+
+        JcaCertStore certs = new JcaCertStore(Arrays.asList(inCerts));
+        ASN1EncodableVector signedAttrs = generateSignedAttributes((X509Certificate)inCerts[0]);
+
+        SMIMESignedGenerator gen = new SMIMESignedGenerator();
+
+        if (signingAlgorithm == null || signingAlgorithm.isEmpty()) {
+            signingAlgorithm = ((X509Certificate)inCerts[0]).getSigAlgName();
+        }
+
+        gen.addSignerInfoGenerator(new JcaSimpleSignerInfoGeneratorBuilder().setProvider(SecurityProviderUtility.getBCProvider()).setSignedAttributeGenerator(new AttributeTable(signedAttrs)).build(signingAlgorithm, key, (X509Certificate)inCerts[0]));        
 
         gen.addCertificates(certs);
 

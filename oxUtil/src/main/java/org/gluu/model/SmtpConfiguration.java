@@ -58,6 +58,10 @@ public class SmtpConfiguration implements java.io.Serializable {
     @JsonProperty("key-store-password")
     private String keyStorePassword;
 
+    @Transient
+    @JsonIgnore
+    private String keyStorePasswordDecrypted;
+
     @JsonProperty("key-store-alias")
     private String keyStoreAlias;
 
@@ -168,6 +172,14 @@ public class SmtpConfiguration implements java.io.Serializable {
 
     public void setKeyStorePassword(String keyStorePassword) {
         this.keyStorePassword = keyStorePassword;
+    }
+
+    public String getKeyStorePasswordDecrypted() {
+        return keyStorePasswordDecrypted;
+    }
+
+    public void setKeyStorePasswordDecrypted(String keyStorePasswordDecrypted) {
+        this.keyStorePasswordDecrypted = keyStorePasswordDecrypted;
     }
 
     public String getKeyStoreAlias() {

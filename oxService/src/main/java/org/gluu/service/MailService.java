@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.security.InvalidParameterException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -50,6 +51,7 @@ import org.bouncycastle.mail.smime.SMIMEUtil;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import org.gluu.model.SmtpConfiguration;
+import org.gluu.model.SmtpConnectProtectionType;
 import org.gluu.util.StringHelper;
 import org.gluu.util.security.SecurityProviderUtility;
 
@@ -84,7 +86,7 @@ public class MailService {
         mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
 
         String keystoreFile = smtpConfiguration.getKeyStore();
-        String keystoreSecret = smtpConfiguration.getKeyStorePassword();
+        String keystoreSecret = smtpConfiguration.getKeyStorePasswordDecrypted();
 
         SecurityProviderUtility.KeyStorageType keystoreType = solveKeyStorageType(keystoreFile);
 
@@ -150,12 +152,20 @@ public class MailService {
         props.put("mail.smtp.connectiontimeout", this.connectionTimeout);
         props.put("mail.smtp.timeout", this.connectionTimeout);
         props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
 
-        if (mailSmtpConfiguration.isRequiresSsl()) {
-            props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
-            props.put("mail.smtp.starttls.enable", true);
+        SmtpConnectProtectionType smtpConnectProtect = mailSmtpConfiguration.getConnectProtection();
+
+        if (smtpConnectProtect == SmtpConnectProtectionType.StartTls) {
             props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
+            props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
+            props.put("mail.smtp.starttls.enable", true);
+        }
+        else if (smtpConnectProtect == SmtpConnectProtectionType.SslTls) {
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
+            props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
+            props.put("mail.smtp.ssl.enable", true);
         }
 
         Session session = null;
@@ -239,12 +249,19 @@ public class MailService {
 
         PrivateKey privateKey = null;
 
-        X509Certificate[] certificates = null;
+        Certificate[] certificates = null;
+        X509Certificate[] x509Certificates = null;
 
         try {
             privateKey = (PrivateKey)keyStore.getKey(mailSmtpConfiguration.getKeyStoreAlias(),
-                    smtpConfiguration.getKeyStorePassword().toCharArray());
-            certificates = (X509Certificate[])keyStore.getCertificateChain(mailSmtpConfiguration.getKeyStoreAlias());
+                    smtpConfiguration.getKeyStorePasswordDecrypted().toCharArray());
+            certificates = keyStore.getCertificateChain(mailSmtpConfiguration.getKeyStoreAlias());
+            if (certificates != null) {
+                x509Certificates = new X509Certificate[certificates.length];
+                for (int i = 0; i < certificates.length; i++) {
+                    x509Certificates[i] = (X509Certificate)certificates[i];
+                }
+            }
         } catch (Exception e) {
             log.error(e.getMessage());
         }
@@ -356,7 +373,7 @@ public class MailService {
                 // Set Multipart as the message's content
                 msg.setContent(mp);
 
-                MimeMultipart multiPart = createMultipartWithSignature(privateKey, certificates, smtpConfiguration.getSigningAlgorithm(), msg);                
+                MimeMultipart multiPart = createMultipartWithSignature(privateKey, x509Certificates, smtpConfiguration.getSigningAlgorithm(), msg);                
 
                 msg.setContent(multiPart);
             }

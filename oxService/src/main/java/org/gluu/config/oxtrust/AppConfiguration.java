@@ -39,6 +39,8 @@ public class AppConfiguration implements Configuration, Serializable {
     private String personCustomObjectClass;
 
     private String[] personObjectClassDisplayNames;
+    private String[] oxTrustAdminUIlocalesSupported;
+    
 
     private String[] contactObjectClassTypes;
     private String[] contactObjectClassDisplayNames;
@@ -945,4 +947,12 @@ public class AppConfiguration implements Configuration, Serializable {
     public void setPassIdTokenHintToLogoutRedirectUri(boolean passIdTokenHintToLogoutRedirectUri) {
         this.passIdTokenHintToLogoutRedirectUri = passIdTokenHintToLogoutRedirectUri;
     }
+
+	public String[] getOxTrustAdminUIlocalesSupported() {
+		return oxTrustAdminUIlocalesSupported;
+	}
+
+	public void setOxTrustAdminUIlocalesSupported(String[] oxTrustAdminUIlocalesSupported) {
+		this.oxTrustAdminUIlocalesSupported = oxTrustAdminUIlocalesSupported;
+	}
 }

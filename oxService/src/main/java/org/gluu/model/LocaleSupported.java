@@ -1,15 +1,14 @@
 package org.gluu.model;
 
-public class LocaleSupported {
+public class LocaleSupported {	
 	
-	public LocaleSupported() {
-		super();
-	}
 	private String locale;
 	private String displayName;
 	
+	public LocaleSupported() {
+	}
+	
 	public LocaleSupported(String locale, String displayName) {
-		super();
 		this.locale = locale;
 		this.displayName = displayName;
 	}

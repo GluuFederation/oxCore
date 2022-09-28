@@ -8,6 +8,8 @@ package org.gluu.service.document.store.service;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+
 import org.gluu.persist.model.base.Entry;
 import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.DataEntry;
@@ -47,7 +49,7 @@ public class OxDocument extends Entry implements Serializable {
 	private Date creationDate;
 	
 	@AttributeName
-	private String oxModuleProperty;
+	private List<String> oxModuleProperty;
 
 	@AttributeName
 	private String oxLevel;
@@ -101,11 +103,11 @@ public class OxDocument extends Entry implements Serializable {
 		this.document = document;
 	}
 
-	public String getOxModuleProperty() {
+	public List<String> getOxModuleProperty() {
 		return oxModuleProperty;
 	}
 
-	public void setOxModuleProperty(String oxModuleProperty) {
+	public void setOxModuleProperty(List<String> oxModuleProperty) {
 		this.oxModuleProperty = oxModuleProperty;
 	}
 

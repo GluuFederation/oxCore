@@ -4,7 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -82,7 +84,7 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	}
 
 	@Override
-	public boolean saveDocument(String name, String documentContent, Charset charset) {
+	public boolean saveDocument(String name, String documentContent, Charset charset, List<String> moduleList) {
 		log.debug("Save document: '{}'", name);
 		OxDocument oxDocument = new OxDocument();
 		oxDocument.setDocument(documentContent);
@@ -94,9 +96,8 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 				oxDocument.setDn(dn);
 				oxDocument.setDescription(name);
 				oxDocument.setOxEnabled("true");
-				oxDocument.setOxModuleProperty("oxtrusr server");
+				oxDocument.setOxModuleProperty(moduleList);	  
 				documentService.addOxDocument(oxDocument);
-				//persistenceEntryManager.persist(oxDocument);
 				return true;
 			} finally {
 			}
@@ -108,7 +109,7 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	}
 
 	@Override
-	public boolean saveDocumentStream(String name, InputStream documentStream) {
+	public boolean saveDocumentStream(String name, InputStream documentStream, List <String> moduleList) {
 		
 		//log.debug("Save document from stream: '{}'", name);
 		OxDocument oxDocument = new OxDocument();
@@ -123,9 +124,8 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 			oxDocument.setDn(dn);
 			oxDocument.setDescription(name);
 			oxDocument.setOxEnabled("true");
-			oxDocument.setOxModuleProperty("oxtrusr server");
+			oxDocument.setOxModuleProperty(moduleList);
 			documentService.addOxDocument(oxDocument);
-			//persistenceEntryManager.persist(oxDocument);
 			return true;
 		} catch (IOException e) {
 			log.error("Failed to write document from stream to file '{}'", name, e);

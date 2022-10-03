@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -93,7 +94,7 @@ public class LocalDocumentStoreProvider extends DocumentStoreProvider<LocalDocum
 	}
 
 	@Override
-	public boolean saveDocument(String path, String documentContent, Charset charset) {
+	public boolean saveDocument(String path, String documentContent, Charset charset, List <String> moduleList) {
 		log.debug("Save document: '{}'", path);
 
 		File file = buildFilePath(path);
@@ -114,7 +115,7 @@ public class LocalDocumentStoreProvider extends DocumentStoreProvider<LocalDocum
 	}
 
 	@Override
-	public boolean saveDocumentStream(String path, InputStream documentStream) {
+	public boolean saveDocumentStream(String path, InputStream documentStream, List <String> moduleList) {
 		log.debug("Save document from stream: '{}'", path);
 
 		File file = buildFilePath(path);

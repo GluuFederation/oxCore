@@ -8,8 +8,8 @@ package org.gluu.config.oxtrust;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import javax.enterprise.inject.Vetoed;
+import org.gluu.model.LocaleSupported;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +39,8 @@ public class AppConfiguration implements Configuration, Serializable {
     private String personCustomObjectClass;
 
     private String[] personObjectClassDisplayNames;
+    private List <LocaleSupported> adminUiLocaleSupported;
+    
 
     private String[] contactObjectClassTypes;
     private String[] contactObjectClassDisplayNames;
@@ -945,4 +947,12 @@ public class AppConfiguration implements Configuration, Serializable {
     public void setPassIdTokenHintToLogoutRedirectUri(boolean passIdTokenHintToLogoutRedirectUri) {
         this.passIdTokenHintToLogoutRedirectUri = passIdTokenHintToLogoutRedirectUri;
     }
+
+	public List<LocaleSupported> getAdminUiLocaleSupported() {
+		return adminUiLocaleSupported;
+	}
+
+	public void setAdminUiLocaleSupported(List<LocaleSupported> adminUiLocaleSupported) {
+		this.adminUiLocaleSupported = adminUiLocaleSupported;
+	}
 }

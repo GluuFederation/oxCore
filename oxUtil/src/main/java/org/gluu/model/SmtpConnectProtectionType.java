@@ -10,7 +10,7 @@ import org.gluu.persist.annotation.AttributeEnum;
 
 /**
  * @author Sergey Manoylo
- * @version 
+ * @version 06/24/2022
  */
 public enum SmtpConnectProtectionType implements AttributeEnum {
 
@@ -37,7 +37,7 @@ public enum SmtpConnectProtectionType implements AttributeEnum {
         this.displayName = displayName;
     }
 
-        @Override
+    @Override
     public String getValue() {
         return value;
     }
@@ -50,7 +50,7 @@ public enum SmtpConnectProtectionType implements AttributeEnum {
         return mapByValues.get(value);
     }
 
-        @Override
+    @Override
     public Enum<? extends AttributeEnum> resolveByValue(String value) {
         return getByValue(value);
     }

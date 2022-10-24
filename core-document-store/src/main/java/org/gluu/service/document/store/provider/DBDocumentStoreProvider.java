@@ -86,21 +86,29 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	@Override
 	public boolean saveDocument(String name, String documentContent, Charset charset, List<String> moduleList) {
 		log.debug("Save document: '{}'", name);
-		OxDocument oxDocument = new OxDocument();
-		oxDocument.setDocument(documentContent);
-		oxDocument.setDisplayName(name);		
 		try {
-			try {
-				oxDocument.setInum(documentService.generateInumForNewOxDocument());	
-				String dn = "inum="+ oxDocument.getInum() +",ou=document,o=gluu";
+			boolean update = true;
+			OxDocument oxDocument = documentService.getOxDocumentByDisplayName(name);
+			if (oxDocument == null) {
+				update = false;
+				oxDocument = new OxDocument();
+				oxDocument.setDisplayName(name);
+				oxDocument.setInum(documentService.generateInumForNewOxDocument());
+				String dn = "inum=" + oxDocument.getInum() + ",ou=document,o=gluu";
 				oxDocument.setDn(dn);
-				oxDocument.setDescription(name);
-				oxDocument.setOxEnabled("true");
-				oxDocument.setOxModuleProperty(moduleList);	  
-				documentService.addOxDocument(oxDocument);
-				return true;
-			} finally {
 			}
+
+			oxDocument.setDocument(documentContent);
+			oxDocument.setDescription(name);
+			oxDocument.setOxEnabled("true");
+			oxDocument.setOxModuleProperty(moduleList);
+
+			if (update)
+				documentService.updateOxDocument(oxDocument);
+			else
+				documentService.addOxDocument(oxDocument);
+			return true;
+
 		} catch (Exception ex) {
 			log.error("Failed to write document to file '{}'", name, ex);
 		}
@@ -109,29 +117,39 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	}
 
 	@Override
-	public boolean saveDocumentStream(String name, InputStream documentStream, List <String> moduleList) {
-		
-		//log.debug("Save document from stream: '{}'", name);
-		OxDocument oxDocument = new OxDocument();
-		oxDocument.setDisplayName(name);
-		
-		 try {
+	public boolean saveDocumentStream(String name, InputStream documentStream, List<String> moduleList) {
+		try {
+			// log.debug("Save document from stream: '{}'", name);
+			boolean update = true;
+			OxDocument oxDocument = documentService.getOxDocumentByDisplayName(name);
+			if (oxDocument == null) {
+				update = false;
+				oxDocument = new OxDocument();
+				oxDocument.setDisplayName(name);
+				
+				String inum = documentService.generateInumForNewOxDocument();
+				oxDocument.setInum(inum);
+				
+				String dn = "inum=" + oxDocument.getInum() + ",ou=document,o=gluu";
+				oxDocument.setDn(dn);
+			}
 			String documentContent = Base64.getEncoder().encodeToString(IOUtils.toByteArray(documentStream));
 			oxDocument.setDocument(documentContent);
-			String inum = documentService.generateInumForNewOxDocument();
-			oxDocument.setInum(inum);	
-			String dn = "inum="+ oxDocument.getInum() +",ou=document,o=gluu";
-			oxDocument.setDn(dn);
 			oxDocument.setDescription(name);
 			oxDocument.setOxEnabled("true");
 			oxDocument.setOxModuleProperty(moduleList);
-			documentService.addOxDocument(oxDocument);
+			
+			if(update)
+				documentService.updateOxDocument(oxDocument);				
+			else
+				documentService.addOxDocument(oxDocument);
+			
 			return true;
 		} catch (IOException e) {
 			log.error("Failed to write document from stream to file '{}'", name, e);
-		}catch (Exception e) {
+		} catch (Exception e) {
 			log.error("Failed to write document from stream to file '{}'", name, e);
-		}	
+		}
 
 		return false;
 	}

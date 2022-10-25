@@ -14,13 +14,13 @@ import org.gluu.persist.annotation.AttributeEnum;
  */
 public enum SmtpConnectProtectionType implements AttributeEnum {
 
-    None("None", "NONE"), StartTls("StartTls", "STARTTLS"), SslTls("SslTls", "SSL/TLS");
+    NONE("None", "NONE"), START_TLS("StartTls", "STARTTLS"), SSL_TLS("SslTls", "SSL/TLS");
 
     private String value;
     private String displayName;
     
-    private static final Map<String, SmtpConnectProtectionType> mapByValues = new HashMap<String, SmtpConnectProtectionType>();
-
+    private static final Map<String, SmtpConnectProtectionType> mapByValues = new HashMap<>();
+    
     static {
         for (SmtpConnectProtectionType enumType : values()) {
             mapByValues.put(enumType.getValue(), enumType);
@@ -37,7 +37,7 @@ public enum SmtpConnectProtectionType implements AttributeEnum {
         this.displayName = displayName;
     }
 
-        @Override
+    @Override
     public String getValue() {
         return value;
     }
@@ -50,7 +50,7 @@ public enum SmtpConnectProtectionType implements AttributeEnum {
         return mapByValues.get(value);
     }
 
-        @Override
+    @Override
     public Enum<? extends AttributeEnum> resolveByValue(String value) {
         return getByValue(value);
     }

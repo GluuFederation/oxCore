@@ -155,13 +155,13 @@ public class MailService {
 
         SmtpConnectProtectionType smtpConnectProtect = mailSmtpConfiguration.getConnectProtection();
 
-        if (smtpConnectProtect == SmtpConnectProtectionType.StartTls) {
+        if (smtpConnectProtect == SmtpConnectProtectionType.START_TLS) {
             props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
             props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
             props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
             props.put("mail.smtp.starttls.enable", true);
         }
-        else if (smtpConnectProtect == SmtpConnectProtectionType.SslTls) {
+        else if (smtpConnectProtect == SmtpConnectProtectionType.SSL_TLS) {
             props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
             props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
             props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
@@ -282,7 +282,7 @@ public class MailService {
 
         SmtpConnectProtectionType smtpConnectProtect = mailSmtpConfiguration.getConnectProtection();
 
-        if (smtpConnectProtect == SmtpConnectProtectionType.StartTls) {
+        if (smtpConnectProtect == SmtpConnectProtectionType.START_TLS) {
             props.put("mail.transport.protocol", "smtp");
 
             props.put("mail.smtp.host", mailSmtpConfiguration.getHost());
@@ -298,7 +298,7 @@ public class MailService {
             props.put("mail.smtp.starttls.enable", true);
             props.put("mail.smtp.starttls.required", true);
         }
-        else if (smtpConnectProtect == SmtpConnectProtectionType.SslTls) {
+        else if (smtpConnectProtect == SmtpConnectProtectionType.SSL_TLS) {
             props.put("mail.transport.protocol.rfc822", "smtps");
 
             props.put("mail.smtps.host", mailSmtpConfiguration.getHost());
@@ -325,7 +325,7 @@ public class MailService {
         Session session = null;
         if (mailSmtpConfiguration.isRequiresAuthentication()) {
             
-            if (smtpConnectProtect == SmtpConnectProtectionType.SslTls) {
+            if (smtpConnectProtect == SmtpConnectProtectionType.SSL_TLS) {
                 props.put("mail.smtps.auth", "true");
             }
             else {

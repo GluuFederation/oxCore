@@ -46,6 +46,8 @@ public class AppConfiguration implements Configuration, Serializable {
     private String[] contactObjectClassDisplayNames;
 
     private String ldifStore;
+    
+    private int keepLdifStoreHistoryDays;
 
     private boolean updateStatus;
 
@@ -954,5 +956,13 @@ public class AppConfiguration implements Configuration, Serializable {
 
 	public void setAdminUiLocaleSupported(List<LocaleSupported> adminUiLocaleSupported) {
 		this.adminUiLocaleSupported = adminUiLocaleSupported;
+	}
+
+	public int getKeepLdifStoreHistoryDays() {
+		return keepLdifStoreHistoryDays;
+	}
+
+	public void setKeepLdifStoreHistoryDays(int keepLdifStoreHistoryDays) {
+		this.keepLdifStoreHistoryDays = keepLdifStoreHistoryDays;
 	}
 }

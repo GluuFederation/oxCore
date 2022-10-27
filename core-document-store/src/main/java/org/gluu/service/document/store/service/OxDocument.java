@@ -58,7 +58,7 @@ public class OxDocument extends Entry implements Serializable {
 	private String oxRevision;
 	
 	@AttributeName
-	private String oxEnabled;
+	private boolean oxEnabled;
 	
 	@AttributeName
 	private String oxAlias;
@@ -127,11 +127,11 @@ public class OxDocument extends Entry implements Serializable {
 		this.oxRevision = oxRevision;
 	}
 
-	public String getOxEnabled() {
+	public boolean getOxEnabled() {
 		return oxEnabled;
 	}
 
-	public void setOxEnabled(String oxEnabled) {
+	public void setOxEnabled(boolean oxEnabled) {
 		this.oxEnabled = oxEnabled;
 	}
 

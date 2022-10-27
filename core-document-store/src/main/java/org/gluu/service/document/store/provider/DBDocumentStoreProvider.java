@@ -100,7 +100,7 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 
 			oxDocument.setDocument(documentContent);
 			oxDocument.setDescription(name);
-			oxDocument.setOxEnabled("true");
+			oxDocument.setOxEnabled(true);
 			oxDocument.setOxModuleProperty(moduleList);
 
 			if (update)
@@ -136,7 +136,7 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 			String documentContent = Base64.getEncoder().encodeToString(IOUtils.toByteArray(documentStream));
 			oxDocument.setDocument(documentContent);
 			oxDocument.setDescription(name);
-			oxDocument.setOxEnabled("true");
+			oxDocument.setOxEnabled(true);
 			oxDocument.setOxModuleProperty(moduleList);
 			
 			if(update)

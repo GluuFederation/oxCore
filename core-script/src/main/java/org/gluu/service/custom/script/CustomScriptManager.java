@@ -233,7 +233,7 @@ public class CustomScriptManager implements Serializable {
 				// reload script automatically after changing location_type
 				long fileModifiactionTime = getFileModificationTime(newCustomScript.getLocationPath());
 
-				newCustomScript.setRevision(fileModifiactionTime);
+				newCustomScript.setRevision(newCustomScript.getRevision() + fileModifiactionTime);
 			}
 
 			String newSupportedCustomScriptInum = StringHelper.toLowerCase(newCustomScript.getInum());

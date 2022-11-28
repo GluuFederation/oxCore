@@ -168,6 +168,7 @@ public class AppConfiguration implements Configuration, Serializable {
     private Boolean useLocalCache = false;
 
     private boolean passIdTokenHintToLogoutRedirectUri = false;
+    private OxTrustApiMode oxTrustProtectionMode;
 
     public ScimProperties getScimProperties() {
         return scimProperties;
@@ -964,5 +965,13 @@ public class AppConfiguration implements Configuration, Serializable {
 
 	public void setKeepLdifStoreHistoryDays(int keepLdifStoreHistoryDays) {
 		this.keepLdifStoreHistoryDays = keepLdifStoreHistoryDays;
+	}
+
+	public OxTrustApiMode getOxTrustProtectionMode() {
+		return oxTrustProtectionMode;
+	}
+
+	public void setOxTrustProtectionMode(OxTrustApiMode oxTrustProtectionMode) {
+		this.oxTrustProtectionMode = oxTrustProtectionMode;
 	}
 }

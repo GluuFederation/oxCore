@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -133,7 +134,7 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 				String dn = "inum=" + oxDocument.getInum() + ",ou=document,o=gluu";
 				oxDocument.setDn(dn);
 			}
-			String documentContent = Base64.getEncoder().encodeToString(IOUtils.toByteArray(documentStream));
+			String documentContent = new String(documentStream.readAllBytes(), StandardCharsets.UTF_8);
 			oxDocument.setDocument(documentContent);
 			oxDocument.setDescription(name);
 			oxDocument.setOxEnabled(true);

@@ -17,8 +17,8 @@ import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 
 import org.apache.commons.text.StringEscapeUtils;
-import org.gluu.orm.util.StringHelper;
 import org.gluu.service.el.ExpressionEvaluator;
+import org.gluu.util.StringHelper;
 
 /**
  * @author Yuriy Movchan

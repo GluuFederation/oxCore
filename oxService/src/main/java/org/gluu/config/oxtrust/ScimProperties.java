@@ -60,4 +60,11 @@ public class ScimProperties implements Serializable {
         this.userExtensionSchemaURI = userExtensionSchemaURI;
     }
 
+	@Override
+	public String toString() {
+		return "ScimProperties [maxCount=" + maxCount + ", bulkMaxOperations=" + bulkMaxOperations
+				+ ", bulkMaxPayloadSize=" + bulkMaxPayloadSize + ", protectionMode=" + protectionMode
+				+ ", userExtensionSchemaURI=" + userExtensionSchemaURI + "]";
+	}
+
 }

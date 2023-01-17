@@ -9,6 +9,11 @@ package org.gluu.config.oxtrust;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.enterprise.inject.Vetoed;
+
+import org.apache.commons.lang3.builder.DiffBuilder;
+import org.apache.commons.lang3.builder.DiffResult;
+import org.apache.commons.lang3.builder.Diffable;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.gluu.model.LocaleSupported;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -23,7 +28,7 @@ import java.util.List;
  */
 @Vetoed
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AppConfiguration implements Configuration, Serializable {
+public class AppConfiguration implements Configuration, Serializable{
 
     private static final long serialVersionUID = -8991383390239617013L;
 
@@ -974,4 +979,109 @@ public class AppConfiguration implements Configuration, Serializable {
 	public void setOxTrustProtectionMode(OxTrustApiMode oxTrustProtectionMode) {
 		this.oxTrustProtectionMode = oxTrustProtectionMode;
 	}
+
+	@Override
+	public DiffResult diff(Configuration objConfig) {
+		AppConfiguration obj = (AppConfiguration) objConfig;
+		
+		return new DiffBuilder(this, obj, ToStringStyle.SHORT_PREFIX_STYLE)
+				.append("baseDN" , this.baseDN, obj.baseDN)
+			    .append("orgSupportEmail", this.orgSupportEmail, obj.orgSupportEmail)
+			    .append("applicationUrl", this.applicationUrl, obj.applicationUrl)
+			    .append("baseEndpoint", this.personObjectClassTypes, obj.personObjectClassTypes)
+			    .append("personObjectClassTypes", this.personObjectClassTypes, obj.personObjectClassTypes)
+			    .append("personCustomObjectClass", this.personCustomObjectClass, obj.personCustomObjectClass)
+				.append("personObjectClassDisplayNames", this.personObjectClassDisplayNames, obj.personObjectClassDisplayNames)
+			    .append("adminUiLocaleSupported", this.adminUiLocaleSupported, obj.adminUiLocaleSupported)
+			    .append("contactObjectClassTypes", this.contactObjectClassTypes, obj.contactObjectClassTypes)
+			    .append("contactObjectClassDisplayNames", this.contactObjectClassDisplayNames, obj.contactObjectClassDisplayNames)
+			    .append("ldifStore", this.ldifStore, obj.ldifStore)
+			    .append("keepLdifStoreHistoryDays", this.keepLdifStoreHistoryDays, obj.keepLdifStoreHistoryDays)
+			    .append("updateStatus", this.updateStatus, obj.updateStatus)
+			    .append("keystorePath", this.keystorePath, obj.keystorePath)
+			    .append("keystorePassword", this.keystorePassword, obj.keystorePassword)
+			    .append("allowPersonModification", this.allowPersonModification, obj.allowPersonModification)
+			    .append("idpUrl", this.idpUrl, obj.idpUrl)
+			    .append("spMetadataPath", this.spMetadataPath, obj.spMetadataPath)
+			    .append("idpSecurityKey", this.idpSecurityKey, obj.idpSecurityKey)
+			    .append("idpSecurityKeyPassword", this.idpSecurityKeyPassword, obj.idpSecurityKeyPassword)
+			    .append("idpSecurityCert", this.idpSecurityCert, obj.idpSecurityCert)
+			    .append("gluuSpAttributes", this.gluuSpAttributes, obj.gluuSpAttributes)
+			    .append("configGeneration", this.configGeneration, obj.configGeneration)
+			    .append("idpLdapProtocol", this.idpLdapProtocol, obj.idpLdapProtocol)
+			    .append("idpLdapServer", this.idpLdapServer, obj.idpLdapServer)
+			    .append("idpBindDn", this.idpBindDn, obj.idpBindDn)
+			    .append("idpBindPassword", this.idpBindPassword, obj.idpBindPassword)
+			    .append("idpUserFields", this.idpUserFields, obj.idpUserFields)
+			    .append("gluuSpCert", this.gluuSpCert, obj.gluuSpCert)
+			    .append("shibboleth3FederationRootDir", this.shibboleth3FederationRootDir, obj.shibboleth3FederationRootDir)
+			    .append("tempCertDir", this.tempCertDir, obj.tempCertDir)
+			    .append("certDir", this.certDir, obj.certDir)
+			    .append("servicesRestartTrigger", this.servicesRestartTrigger, obj.servicesRestartTrigger)
+			    .append("oxAuthSectorIdentifierUrl", this.oxAuthSectorIdentifierUrl, obj.oxAuthSectorIdentifierUrl)
+			    .append("oxAuthClientId", this.oxAuthClientId, obj.oxAuthClientId)
+			    .append("oxAuthClientPassword", this.oxAuthClientPassword, obj.oxAuthClientPassword)
+			    .append("oxAuthClientScope", this.oxAuthClientScope, obj.oxAuthClientScope)
+			    .append("loginRedirectUrl", this.loginRedirectUrl, obj.loginRedirectUrl)
+			    .append("logoutRedirectUrl", this.logoutRedirectUrl, obj.logoutRedirectUrl)
+			    .append("clientAssociationAttribute", this.clientAssociationAttribute, obj.clientAssociationAttribute)
+			    .append("oxAuthIssuer", this.oxAuthIssuer, obj.oxAuthIssuer)
+			    .append("ignoreValidation", this.ignoreValidation, obj.ignoreValidation)
+			    .append("umaIssuer", this.umaIssuer, obj.umaIssuer)
+			    .append("scimUmaClientId", this.scimUmaClientId, obj.scimUmaClientId)
+			    .append("scimUmaClientKeyId", this.scimUmaClientKeyId, obj.scimUmaClientKeyId)
+			    .append("scimUmaResourceId", this.scimUmaResourceId, obj.scimUmaResourceId)
+			    .append("scimUmaScope", this.scimUmaScope, obj.scimUmaScope)
+			    .append("scimUmaClientKeyStoreFile", this.scimUmaClientKeyStoreFile, obj.scimUmaClientKeyStoreFile)
+			    .append("scimUmaClientKeyStorePassword", this.scimUmaClientKeyStorePassword, obj.scimUmaClientKeyStorePassword)
+			    .append("passportUmaClientId", this.passportUmaClientId, obj.passportUmaClientId)
+			    .append("passportUmaClientKeyId", this.passportUmaClientKeyId, obj.passportUmaClientKeyId)
+			    .append("passportUmaResourceId", this.passportUmaResourceId, obj.passportUmaResourceId)
+			    .append("passportUmaScope", this.passportUmaScope, obj.passportUmaScope)
+			    .append("passportUmaClientKeyStoreFile", this.passportUmaClientKeyStoreFile, obj.passportUmaClientKeyStoreFile)
+			    .append("passportUmaClientKeyStorePassword", this.passportUmaClientKeyStorePassword, obj.passportUmaClientKeyStorePassword)
+			    .append("apiUmaClientId", this.apiUmaClientId, obj.apiUmaClientId)
+			    .append("apiUmaClientKeyId", this.apiUmaClientKeyId, obj.apiUmaClientKeyId)
+			    .append("apiUmaResourceId", this.apiUmaResourceId, obj.apiUmaResourceId)
+			    .append("apiUmaScopes", this.apiUmaScopes, obj.apiUmaScopes)
+			    .append("apiUmaClientKeyStoreFile", this.apiUmaClientKeyStoreFile, obj.apiUmaClientKeyStoreFile)
+			    .append("apiUmaClientKeyStorePassword", this.apiUmaClientKeyStorePassword, obj.apiUmaClientKeyStorePassword)
+			    .append("cssLocation", this.cssLocation, obj.cssLocation)
+			    .append("jsLocation", this.jsLocation, obj.jsLocation)
+			    .append("recaptchaSiteKey", this.recaptchaSiteKey, obj.recaptchaSiteKey)
+			    .append("recaptchaSecretKey", this.recaptchaSecretKey, obj.recaptchaSecretKey)
+			    .append("authenticationRecaptchaEnabled", this.authenticationRecaptchaEnabled, obj.authenticationRecaptchaEnabled)
+			    .append("oxTrustApiTestMode", this.oxTrustApiTestMode, obj.oxTrustApiTestMode)
+			    .append("enableUpdateNotification", this.enableUpdateNotification, obj.enableUpdateNotification)
+			    .append("rptConnectionPoolUseConnectionPooling", this.rptConnectionPoolUseConnectionPooling, obj.rptConnectionPoolUseConnectionPooling)
+			    .append("rptConnectionPoolMaxTotal", this.rptConnectionPoolMaxTotal, obj.rptConnectionPoolMaxTotal)
+			    .append("rptConnectionPoolDefaultMaxPerRoute", this.rptConnectionPoolDefaultMaxPerRoute, obj.rptConnectionPoolDefaultMaxPerRoute)
+			    .append("rptConnectionPoolValidateAfterInactivity", this.rptConnectionPoolValidateAfterInactivity, obj.rptConnectionPoolValidateAfterInactivity) // In seconds", 
+				.append("rptConnectionPoolCustomKeepAliveTimeout",this.rptConnectionPoolCustomKeepAliveTimeout, obj.rptConnectionPoolCustomKeepAliveTimeout)
+			    .append("oxIncommonFlag", this.oxIncommonFlag, obj.oxIncommonFlag)
+			    .append("clientWhiteList", this.clientWhiteList, obj.clientWhiteList)
+			    .append("clientBlackList", this.clientBlackList, obj.clientBlackList)	
+			    .append("supportedUserStatus", this.supportedUserStatus, obj.supportedUserStatus)	
+			    .append("loggingLevel", this.loggingLevel, obj.loggingLevel)
+			    .append("loggingLayout", this.loggingLayout, obj.loggingLayout)
+			    .append("shibbolethVersion", this.shibbolethVersion, obj.shibbolethVersion)
+			    .append("shibboleth3IdpRootDir", this.shibboleth3IdpRootDir, obj.shibboleth3IdpRootDir)
+			    .append("shibboleth3SpConfDir", this.shibboleth3SpConfDir, obj.shibboleth3SpConfDir)
+			    .append("organizationName", this.organizationName, obj.organizationName)
+			    .append("idp3SigningCert", this.idp3SigningCert, obj.idp3SigningCert)
+			    .append("idp3EncryptionCert", this.idp3EncryptionCert, obj.idp3EncryptionCert)
+			    .append("metricReporterInterval", this.metricReporterInterval, obj.metricReporterInterval)
+			    .append("metricReporterKeepDataDays", this.metricReporterKeepDataDays, obj.metricReporterKeepDataDays)
+			    .append("metricReporterEnabled", this.metricReporterEnabled, obj.metricReporterEnabled)
+			    .append("disableJdkLogger", this.disableJdkLogger, obj.disableJdkLogger)
+			    .append("scimProperties", this.scimProperties, obj.scimProperties)
+			    .append("passwordResetRequestExpirationTime", this.passwordResetRequestExpirationTime, obj.passwordResetRequestExpirationTime) // in seconds
+			    .append("cleanServiceInterval", this.cleanServiceInterval, obj.cleanServiceInterval)
+			    .append("enforceEmailUniqueness", this.enforceEmailUniqueness, obj.enforceEmailUniqueness)
+			    .append("useLocalCache", this.useLocalCache, obj.useLocalCache)
+			    .append("passIdTokenHintToLogoutRedirectUri", this.passIdTokenHintToLogoutRedirectUri, obj.passIdTokenHintToLogoutRedirectUri)
+			    .append("oxTrustProtectionMode", this.oxTrustProtectionMode, obj.oxTrustProtectionMode)
+			    .build();
+	}
+
 }

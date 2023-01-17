@@ -52,4 +52,10 @@ public class ImportPerson implements Serializable {
     public void setRequired(Boolean required) {
         this.required = required;
     }
+
+	@Override
+	public String toString() {
+		return "ImportPerson [ldapName=" + ldapName + ", displayName=" + displayName + ", dataType=" + dataType
+				+ ", required=" + required + "]";
+	}
 }

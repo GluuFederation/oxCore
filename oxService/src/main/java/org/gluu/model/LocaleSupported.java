@@ -26,4 +26,9 @@ public class LocaleSupported {
 		this.displayName = displayName;
 	}
 
+	@Override
+	public String toString() {
+		return "LocaleSupported [locale=" + locale + ", displayName=" + displayName + "]";
+	}
+
 }

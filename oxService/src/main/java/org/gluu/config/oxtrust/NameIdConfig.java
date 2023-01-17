@@ -9,6 +9,9 @@ package org.gluu.config.oxtrust;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.enterprise.inject.Vetoed;
+
+import org.apache.commons.lang3.builder.DiffResult;
+
 import java.io.Serializable;
 
 
@@ -51,5 +54,11 @@ public class NameIdConfig implements Configuration, Serializable {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
+
+	@Override
+	public DiffResult diff(Configuration newObj) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

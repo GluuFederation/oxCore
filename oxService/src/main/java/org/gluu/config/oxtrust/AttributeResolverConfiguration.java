@@ -9,6 +9,11 @@ package org.gluu.config.oxtrust;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.enterprise.inject.Vetoed;
+
+import org.apache.commons.lang3.builder.DiffBuilder;
+import org.apache.commons.lang3.builder.DiffResult;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import java.util.List;
 
 
@@ -30,5 +35,15 @@ public class AttributeResolverConfiguration implements Configuration {
     public void setNameIdConfigs(List<NameIdConfig> nameIdConfigs) {
         this.nameIdConfigs = nameIdConfigs;
     }
+
+	@Override
+	public DiffResult diff(Configuration newObj) {
+		AttributeResolverConfiguration obj = (AttributeResolverConfiguration) newObj;
+		 return new DiffBuilder(this, obj, ToStringStyle.SHORT_PREFIX_STYLE)
+			        .append("nameIdConfigs", this.nameIdConfigs, obj.nameIdConfigs)
+			        .build();
+	}
+	
+	
 
 }

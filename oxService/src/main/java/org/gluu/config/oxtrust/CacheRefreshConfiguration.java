@@ -7,6 +7,10 @@
 package org.gluu.config.oxtrust;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import org.apache.commons.lang3.builder.DiffBuilder;
+import org.apache.commons.lang3.builder.DiffResult;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.gluu.model.ldap.GluuLdapConfiguration;
 
 import javax.enterprise.inject.Vetoed;
@@ -165,5 +169,27 @@ public class CacheRefreshConfiguration implements Configuration {
     public void setSnapshotMaxCount(int snapshotMaxCount) {
         this.snapshotMaxCount = snapshotMaxCount;
     }
+
+    @Override
+	public DiffResult diff(Configuration newObj) {
+    	CacheRefreshConfiguration obj = (CacheRefreshConfiguration) newObj;
+		 return new DiffBuilder(this, obj, ToStringStyle.SHORT_PREFIX_STYLE)
+			        .append("sourceConfigs", this.sourceConfigs, obj.sourceConfigs)
+			        .append("inumConfig", this.inumConfig, obj.inumConfig)
+			        .append("targetConfig", this.targetConfig, obj.targetConfig)
+			        .append("ldapSearchSizeLimit", this.ldapSearchSizeLimit, obj.ldapSearchSizeLimit)
+			        .append("keyAttributes", this.keyAttributes, obj.keyAttributes)
+			        .append("keyObjectClasses", this.keyObjectClasses, obj.keyObjectClasses)
+			        .append("sourceAttributes", this.sourceAttributes, obj.sourceAttributes)
+			        .append("customLdapFilter", this.customLdapFilter, obj.customLdapFilter)
+			        .append("updateMethod", this.updateMethod, obj.updateMethod)
+			        .append("defaultInumServer", this.defaultInumServer, obj.defaultInumServer)
+			        .append("keepExternalPerson", this.keepExternalPerson, obj.keepExternalPerson)
+			        .append("useSearchLimit", this.useSearchLimit, obj.useSearchLimit)
+			        .append("attributeMapping", this.attributeMapping, obj.attributeMapping)
+			        .append("snapshotFolder", this.snapshotFolder, obj.snapshotFolder)
+			        .append("snapshotMaxCount", this.snapshotMaxCount, obj.snapshotMaxCount)			        
+			        .build();
+	}
 
 }

@@ -169,7 +169,7 @@ public class AppConfiguration implements Configuration, Serializable {
 
     private boolean passIdTokenHintToLogoutRedirectUri = false;
     private OxTrustApiMode oxTrustProtectionMode;
-    private String auditLogsLocation;
+    private String auditConfigLogsLocation;
 
     public ScimProperties getScimProperties() {
         return scimProperties;
@@ -976,11 +976,11 @@ public class AppConfiguration implements Configuration, Serializable {
 		this.oxTrustProtectionMode = oxTrustProtectionMode;
 	}
 
-	public String getAuditLogsLocation() {
-		return auditLogsLocation;
+	public String getAuditConfigLogsLocation() {
+		return auditConfigLogsLocation;
 	}
 
-	public void setAuditLogsLocation(String auditLogsLocation) {
-		this.auditLogsLocation = auditLogsLocation;
+	public void setAuditConfigLogsLocation(String auditConfigLogsLocation) {
+		this.auditConfigLogsLocation = auditConfigLogsLocation;
 	}
 }

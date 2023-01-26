@@ -270,7 +270,7 @@ public class CustomScriptManager implements Serializable {
 					// Replace script revision with file modification time. This should allow to
 					// reload script automatically after changing location_type
 					long fileModifiactionTime = getFileModificationTime(loadedCustomScript.getLocationPath());
-					loadedCustomScript.setRevision(fileModifiactionTime);
+					loadedCustomScript.setRevision(loadedCustomScript.getRevision() + fileModifiactionTime);
 
 					if (fileModifiactionTime != 0) {
 						String scriptFromFile = loadFromFile(loadedCustomScript.getLocationPath());

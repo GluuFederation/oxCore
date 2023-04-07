@@ -117,7 +117,7 @@ public class AppConfiguration implements Configuration, Serializable {
     private String apiUmaClientId;
     private String apiUmaClientKeyId;
     private String apiUmaResourceId;
-    private String[] apiUmaScopes;
+    private String apiUmaScope;
     private String apiUmaClientKeyStoreFile;
     private String apiUmaClientKeyStorePassword;
 
@@ -834,12 +834,12 @@ public class AppConfiguration implements Configuration, Serializable {
         this.apiUmaResourceId = apiUmaResourceId;
     }
 
-    public String[] getApiUmaScopes() {
-        return apiUmaScopes;
+    public String getApiUmaScope() {
+        return apiUmaScope;
     }
 
-    public void setApiUmaScopes(String[] apiUmaScopes) {
-        this.apiUmaScopes = apiUmaScopes;
+    public void setApiUmaScope(String apiUmaScope) {
+        this.apiUmaScope = apiUmaScope;
     }
 
     /**

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -741,24 +742,40 @@ public abstract class AbstractCorsFilter implements Filter {
      *
      * @return <code>true</code> if it's enabled; false otherwise.
      */
-    public boolean isAnyOriginAllowed(ServletRequest servletRequest) {
-    	Collection<String> clientAllowedOrigins = getContextClientAllowedOrigins(servletRequest);
+	public boolean isAnyOriginAllowed(ServletRequest servletRequest) {
+		if (allowedOrigins != null && allowedOrigins.size() == 0) {
+			if (!hasContextClientAllowedOrigins(servletRequest)) {
+				return true;
+			}
 
-    	if ((allowedOrigins != null && allowedOrigins.size() == 0) &&
-    		(clientAllowedOrigins != null && clientAllowedOrigins.size() == 0)) {
-            return true;
-        }
+			Collection<String> clientAllowedOrigins = getContextClientAllowedOrigins(servletRequest);
+			if (clientAllowedOrigins != null && clientAllowedOrigins.size() == 0) {
+				return true;
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
 
     protected void setContextClientAllowedOrigins(ServletRequest servletRequest, Collection<String> clientAllowedOrigins) {
-    	servletRequest.setAttribute(PARTAM_CLIENT_ALLOWED_ORIGINS, clientAllowedOrigins);
+    	servletRequest.setAttribute(PARAM_CLIENT_ALLOWED_ORIGINS, clientAllowedOrigins);
     }
 
     @SuppressWarnings("unchecked")
 	protected Collection<String> getContextClientAllowedOrigins(ServletRequest servletRequest) {
-    	return (Collection<String>) servletRequest.getAttribute(PARTAM_CLIENT_ALLOWED_ORIGINS);
+    	return (Collection<String>) servletRequest.getAttribute(PARAM_CLIENT_ALLOWED_ORIGINS);
+    }
+
+	protected boolean hasContextClientAllowedOrigins(ServletRequest servletRequest) {
+    	Enumeration<String> attributeNames =  servletRequest.getAttributeNames();
+    	while (attributeNames.hasMoreElements()) {
+    		String attributeName = attributeNames.nextElement();
+    		if (PARAM_CLIENT_ALLOWED_ORIGINS.equals(attributeName)) {
+    			return true;
+    		}
+		}
+
+    	return false;
     }
 
     /**
@@ -1103,7 +1120,7 @@ public abstract class AbstractCorsFilter implements Filter {
     public static final String PARAM_CORS_REQUEST_DECORATE =
             "cors.request.decorate";
 
-	public static final String PARTAM_CLIENT_ALLOWED_ORIGINS = "CLIENT_ALLOWED_ORIGINS";
+	public static final String PARAM_CLIENT_ALLOWED_ORIGINS = "CLIENT_ALLOWED_ORIGINS";
 
 }
 

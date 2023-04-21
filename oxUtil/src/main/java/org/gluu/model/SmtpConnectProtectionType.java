@@ -8,6 +8,9 @@ import java.util.Map;
 
 import org.gluu.persist.annotation.AttributeEnum;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * @author Sergey Manoylo
  * @version 06/24/2022
@@ -37,6 +40,11 @@ public enum SmtpConnectProtectionType implements AttributeEnum {
         this.displayName = displayName;
     }
 
+    @JsonCreator
+    public static SmtpConnectProtectionType forValues(String value) {
+        return getByValue(value);
+    }
+
     @Override
     public String getValue() {
         return value;
@@ -55,6 +63,7 @@ public enum SmtpConnectProtectionType implements AttributeEnum {
         return getByValue(value);
     }
 
+    @JsonValue
     @Override
     public String toString() {
         return value;

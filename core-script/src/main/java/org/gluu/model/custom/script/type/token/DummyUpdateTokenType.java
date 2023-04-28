@@ -6,10 +6,10 @@
 
 package org.gluu.model.custom.script.type.token;
 
-import java.util.Map;
-
 import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.model.CustomScript;
+
+import java.util.Map;
 
 /**
  * @author Yuriy Movchan
@@ -40,5 +40,30 @@ public class DummyUpdateTokenType implements UpdateTokenType {
 	public boolean modifyIdToken(Object jwr, Object tokenContext) {
 		return false;
 	}
+
+    @Override
+    public boolean modifyRefreshToken(Object refreshToken, Object tokenContext) {
+        return false;
+    }
+
+    @Override
+    public boolean modifyAccessToken(Object accessToken, Object tokenContext) {
+        return false;
+    }
+
+    @Override
+    public int getRefreshTokenLifetimeInSeconds(Object tokenContext) {
+        return 0;
+    }
+
+    @Override
+    public int getIdTokenLifetimeInSeconds(Object context) {
+        return 0;
+    }
+
+    @Override
+    public int getAccessTokenLifetimeInSeconds(Object context) {
+        return 0;
+    }
 
 }

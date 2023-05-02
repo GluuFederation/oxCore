@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author Yuriy Movchan
  */
 @ApplicationScoped
+@Named
 public class PageService {
 	
 	private final String CURRENT_DATE_TIME_FORMATTER = "yyyy-MM-dd hh:mm:ss a";

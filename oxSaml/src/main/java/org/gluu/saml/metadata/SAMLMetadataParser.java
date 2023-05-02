@@ -5,11 +5,11 @@
  */
 package org.gluu.saml.metadata;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringBufferInputStream;
 import java.net.URL;
 import java.util.List;
 
@@ -21,8 +21,17 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.gluu.service.document.store.service.DocumentStoreService;
-import org.gluu.util.io.HTTPFileDownloader;
 import org.slf4j.Logger;
 import org.xml.sax.SAXException;
 
@@ -150,17 +159,45 @@ public class SAMLMetadataParser {
         return handler;
     }
 
-    public EntityIDHandler parseMetadata(URL metadataURL) {
-        String metadataFileContent = HTTPFileDownloader.getResource(metadataURL.toExternalForm(), "application/xml, text/xml", null, null);
+    public EntityIDHandler parseMetadata(URL metadataURL) throws ClientProtocolException, IOException {
+		HttpGet httpGet = new HttpGet(metadataURL.toExternalForm());
+    	httpGet.setHeader("Accept", "application/xml, text/xml");
+
+    	byte[] metadataFileContent = null;
+    	try ( CloseableHttpClient httpClient = HttpClients.custom()
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.build() ) {
+    		HttpResponse httpResponse = httpClient.execute(httpGet);
+    		metadataFileContent = getResponseContent(httpResponse);
+		}
 
         if (metadataFileContent == null) {
             return null;
         }
 
-        InputStream is = new StringBufferInputStream(metadataFileContent);
+        InputStream is = new ByteArrayInputStream(metadataFileContent);
 
         return parseMetadata(is);
     }
+
+    public byte[] getResponseContent(HttpResponse httpResponse) throws IOException {
+        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)) {
+        	return null;
+        }
+
+        HttpEntity entity = httpResponse.getEntity();
+		byte[] responseBytes = new byte[0];
+		if (entity != null) {
+			responseBytes = EntityUtils.toByteArray(entity);
+		}
+
+    	// Consume response content
+		if (entity != null) {
+			EntityUtils.consume(entity);
+		}
+
+    	return responseBytes;
+	}
 
 }
 

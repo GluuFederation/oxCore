@@ -160,7 +160,15 @@ public class SAMLMetadataParser {
     }
 
     public EntityIDHandler parseMetadata(URL metadataURL) throws ClientProtocolException, IOException {
-		HttpGet httpGet = new HttpGet(metadataURL.toExternalForm());
+		byte[] metadataFileContent = downloadMetadata(metadataURL.toExternalForm());
+
+        InputStream is = new ByteArrayInputStream(metadataFileContent);
+
+        return parseMetadata(is);
+    }
+
+    public byte[] downloadMetadata(String metadataURL) throws IOException, ClientProtocolException {
+		HttpGet httpGet = new HttpGet();
     	httpGet.setHeader("Accept", "application/xml, text/xml");
 
     	byte[] metadataFileContent = null;
@@ -175,10 +183,8 @@ public class SAMLMetadataParser {
             return null;
         }
 
-        InputStream is = new ByteArrayInputStream(metadataFileContent);
-
-        return parseMetadata(is);
-    }
+        return metadataFileContent;
+	}
 
     public byte[] getResponseContent(HttpResponse httpResponse) throws IOException {
         if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)) {

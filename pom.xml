@@ -5,7 +5,7 @@
 	<groupId>org.gluu</groupId>
 	<artifactId>oxcore</artifactId>
 	<packaging>pom</packaging>
-	<version>4.3.1.Final</version>
+	<version>4.3.1.sp1</version>
 	<name>oxCore</name>
 	<url>https://www.gluu.org</url>
 
@@ -185,4 +185,22 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
+    <repositories>
+        <repository>
+            <id>mavencentral</id>
+            <name>maven central</name>
+            <url>https://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+            <id>bouncycastle</id>
+            <name>Bouncy Castle</name>
+            <url>https://repo2.maven.org/maven2/org/bouncycastle</url>
+        </repository>
+        <repository>
+            <id>gluu</id>
+            <name>Gluu project repository</name>
+            <url>https://maven.gluu.org/maven</url>
+        </repository>
+    </repositories>
 </project>

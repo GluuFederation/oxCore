@@ -168,7 +168,7 @@ public class SAMLMetadataParser {
     }
 
     public byte[] downloadMetadata(String metadataURL) throws IOException, ClientProtocolException {
-		HttpGet httpGet = new HttpGet();
+		HttpGet httpGet = new HttpGet(metadataURL);
     	httpGet.setHeader("Accept", "application/xml, text/xml");
 
     	byte[] metadataFileContent = null;

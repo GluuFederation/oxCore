@@ -71,7 +71,6 @@ public class PythonService implements Serializable {
     	log.info("Initializing PythonService with Jython: '{}'", pythonHome);
         if (StringHelper.isNotEmpty(pythonHome)) {
             try {
-
             	PythonInterpreter.initialize(getPreProperties(), getPostProperties(pythonModulesDir, pythonHome), null);
                 this.pythonInterpreter = new PythonInterpreter();
 

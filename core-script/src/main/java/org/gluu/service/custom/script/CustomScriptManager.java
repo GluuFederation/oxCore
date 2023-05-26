@@ -233,7 +233,7 @@ public class CustomScriptManager implements Serializable {
 				// reload script automatically after changing location_type
 				long fileModifiactionTime = getFileModificationTime(newCustomScript.getLocationPath());
 
-				newCustomScript.setRevision(fileModifiactionTime);
+				newCustomScript.setRevision(newCustomScript.getRevision() + fileModifiactionTime);
 			}
 
 			String newSupportedCustomScriptInum = StringHelper.toLowerCase(newCustomScript.getInum());
@@ -270,7 +270,7 @@ public class CustomScriptManager implements Serializable {
 					// Replace script revision with file modification time. This should allow to
 					// reload script automatically after changing location_type
 					long fileModifiactionTime = getFileModificationTime(loadedCustomScript.getLocationPath());
-					loadedCustomScript.setRevision(fileModifiactionTime);
+					loadedCustomScript.setRevision(loadedCustomScript.getRevision() + fileModifiactionTime);
 
 					if (fileModifiactionTime != 0) {
 						String scriptFromFile = loadFromFile(loadedCustomScript.getLocationPath());
@@ -428,11 +428,20 @@ public class CustomScriptManager implements Serializable {
 
 		boolean initialized = false;
 		try {
-			if (externalType.getApiVersion() > 10) {
-				initialized = externalType.init(customScript, configurationAttributes);
-			} else {
-				initialized = externalType.init(configurationAttributes);
-				log.warn(" Update the script's init method to init(self, customScript, configurationAttributes)",  customScript.getName());
+			// Workaround to allow load all required class in init method needed for proper script work
+			// At the end we restore ContextClassLoader
+			// More details: https://github.com/JanssenProject/jans/issues/5116
+			ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
+			Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+			try {
+				if (externalType.getApiVersion() > 10) {
+					initialized = externalType.init(customScript, configurationAttributes);
+				} else {
+					initialized = externalType.init(configurationAttributes);
+					log.warn(" Update the script's init method to init(self, customScript, configurationAttributes)",  customScript.getName());
+				}
+			} finally {
+				Thread.currentThread().setContextClassLoader(oldClassLoader);
 			}
 		} catch (Exception ex) {
 			log.error("Failed to initialize custom script: '{}'", ex, customScript.getName());

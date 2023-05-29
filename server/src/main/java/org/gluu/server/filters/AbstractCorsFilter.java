@@ -393,7 +393,7 @@ public abstract class AbstractCorsFilter implements Filter {
                 message.append(";Access-Control-Request-Headers=");
                 message.append(accessControlRequestHeaders);
             }
-            log.debug(message.toString());
+            log.debug(message.toString(), new Throwable());
         }
     }
 

@@ -5,7 +5,7 @@
 	<groupId>org.gluu</groupId>
 	<artifactId>oxcore</artifactId>
 	<packaging>pom</packaging>
-	<version>4.5.2.Final</version>
+	<version>4.5.3-SNAPSHOT</version>
 	<name>oxCore</name>
 	<url>https://www.gluu.org</url>
 
@@ -42,6 +42,7 @@
 		<module>oxService</module>
 		<module>server</module>
 		<module>oxRadius</module>
+		<module>jetty-session-store-jdbc-extended</module>
 		<module>demo-cdi</module>
 	</modules>
 
@@ -50,7 +51,7 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>gluu-core-bom</artifactId>
-				<version>4.5.2.Final</version>
+				<version>4.5.3-SNAPSHOT</version>
 				<scope>import</scope>
 				<type>pom</type>
 			</dependency>

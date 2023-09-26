@@ -16,7 +16,7 @@
 	</parent>
 
 	<properties>
-		<jetty-server.version>10.0.15</jetty-server.version>
+		<jetty-server.version>10.0.16</jetty-server.version>
 		<jetty.url>https://www.eclipse.org/jetty/</jetty.url>
 
 		<!-- build -->

@@ -47,6 +47,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
     private static final Logger LOG = LoggerFactory.getLogger(JDBCExtendedSessionDataStore.class);
 
 	private int _lockPeriodMillis;
+	private int _delayPeriodMillis;
 	private boolean _serializationLogSkipped = false;
 
     /**
@@ -153,6 +154,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
     protected void doInsert(String id, SessionData data)
             throws Exception
         {
+        	LOG.info(">>>>>>>>>> INSERT START: {}", id);
             String s = _sessionTableSchema.getInsertSessionStatementAsString();
 
             try (Connection connection = ((org.eclipse.jetty.server.session.extended.DatabaseAdaptor) _dbAdaptor).getConnection())
@@ -194,15 +196,17 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                            LOG.debug("Inserted session {}", data);
                    }
                 }
+        		LOG.info("<<<<<<<<<< INSERT END: {}", id);
 
-            // Save with serialized data
-            doUpdate(id, data);
+        		// Save with serialized data
+        		doUpdate(id, data);
         }
 
         @Override
         protected void doUpdate(String id, SessionData data)
             throws Exception
         {
+        	LOG.info(">>>>>>>>>> UPDATE START: {}", id);
             try (Connection connection = ((org.eclipse.jetty.server.session.extended.DatabaseAdaptor) _dbAdaptor).getConnection())
             {
                 connection.setAutoCommit(true);
@@ -233,11 +237,13 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                         LOG.debug("Updated session {}", data);
                 }
             }
+    		LOG.info("<<<<<<<<<< UPDATE END: {}", id);
         }
 
         @Override
         public SessionData doLoad(String id) throws Exception
         {
+    		LOG.info(">>>>>>>>>> LOAD START: {}", id);
         	ExtendedSessionData extendedSessionData = doLoadImpl(id, true);
         	if (extendedSessionData.getLockTime() == null) {
             	return extendedSessionData.getSessionData();
@@ -248,17 +254,21 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
         	long currTime = System.currentTimeMillis();
         	long sleepTime = unlockTime - currTime;
         	if (sleepTime > 0) {
+        		LOG.info("<<<<<<<<<< LOAD START DELAY FOR LOCK: {}", id);
 	        	Thread.sleep(sleepTime);
+        		LOG.info(">>>>>>>>>> LOAD END DELAY FOR LOCK: {}", id);
         	}
 
         	// Load after lock expiration
         	extendedSessionData = doLoadImpl(id, false);
 
+    		LOG.info("<<<<<<<<<< LOAD END: {}", id);
         	return extendedSessionData.getSessionData();
         }
 
         protected ExtendedSessionData doLoadImpl(String id, boolean checkLock) throws Exception
         {
+    		LOG.info("---------- LOAD IMPL: {} : {}", id, checkLock);
             try (Connection connection = ((org.eclipse.jetty.server.session.extended.DatabaseAdaptor) _dbAdaptor).getConnection();
                  PreparedStatement statement = _sessionTableSchema.getLoadStatement(connection, id, _context);
                  ResultSet result = statement.executeQuery())
@@ -303,7 +313,14 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     try (InputStream is = _dbAdaptor.getBlobInputStream(result, _sessionTableSchema.getMapColumn());
                          ClassLoadingObjectInputStream ois = new ClassLoadingObjectInputStream(is))
                     {
+                		LOG.info(">>>>>>>>>> DESERIALIZATION START: {}", id);
+                    	if (_delayPeriodMillis > 0) {
+                    		LOG.info(">>>>>>>>>> DESERIALIZATION DELAY: {}", id);
+            	        	Thread.sleep(_delayPeriodMillis);
+                    		LOG.info("<<<<<<<<<< DESERIALIZATION RESUME: {}", id);
+                    	}
                         SessionData.deserializeAttributes(data, ois);
+                		LOG.info("<<<<<<<<<< DESERIALIZATION END: {}", id);
                     }
                     catch (Exception e)
                     {
@@ -359,6 +376,17 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
         public void setLockPeriodMillis(int millis)
         {
             _lockPeriodMillis = millis;
+        }
+
+        @ManagedAttribute(value = "interval in millis to wait before session deserialization", readonly = true)
+        public int getDelayPeriodMillis()
+        {
+            return _delayPeriodMillis;
+        }
+
+        public void setDelayPeriodMillis(int millis)
+        {
+        	_delayPeriodMillis = millis;
         }
 
         @ManagedAttribute(value = "specify if serializer should log warn message on skip object", readonly = true)

@@ -26,12 +26,14 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
 {
 
     public static final int DEFAULT_LOCK_PERIOD_MILLIS = 1000; //default of 1000 millis
+    public static final int DEFAULT_DELAY_PERIOD_MILLIS = 1000; //default of 1000 millis
 
 	DatabaseAdaptor _adaptor;
 
     JDBCSessionDataStore.SessionTableSchema _schema;
 
 	private int _lockPeriodMillis = DEFAULT_LOCK_PERIOD_MILLIS;
+	private int _delayPeriodMillis = DEFAULT_DELAY_PERIOD_MILLIS;
 	private boolean _serializationLogSkipped = false;
 
     @Override
@@ -44,6 +46,7 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
         ds.setSavePeriodSec(getSavePeriodSec());
         
         ds.setLockPeriodMillis(_lockPeriodMillis);
+        ds.setDelayPeriodMillis(_delayPeriodMillis);
         ds.setSerializationLogSkipped(_serializationLogSkipped);
         return ds;
     }
@@ -73,6 +76,14 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
     {
         _lockPeriodMillis = millis;
     }
+
+	public int getDelayPeriodMillis() {
+		return _delayPeriodMillis;
+	}
+
+	public void setDelayPeriodMillis(int millis) {
+		this._delayPeriodMillis = millis;
+	}
 
 	public boolean isSerializationLogSkipped() {
 		return _serializationLogSkipped;

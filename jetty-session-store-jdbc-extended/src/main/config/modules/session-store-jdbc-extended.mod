@@ -31,6 +31,7 @@ db-connection-type?=datasource
 #jetty.session.gracePeriod.seconds=3600
 #jetty.session.savePeriod.seconds=0
 #jetty.session.lockTime.millis=1000
+#jetty.session.delayTime.millis=1000
 #jetty.session.serialization.log.skipped=true
 
 jetty.session.jdbc.blobType=mediumblob

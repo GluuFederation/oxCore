@@ -155,6 +155,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
             throws Exception
         {
         	LOG.info(">>>>>>>>>> INSERT START: {}", id);
+        	boolean useLock = _lockPeriodMillis > 0;
             String s = _sessionTableSchema.getInsertSessionStatementAsString();
 
             try (Connection connection = ((org.eclipse.jetty.server.session.extended.DatabaseAdaptor) _dbAdaptor).getConnection())
@@ -184,9 +185,14 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
                             ObjectOutputStream oos = new ExtendedObjectOutputStream(baos, _serializationLogSkipped))
                        {
-                           // Write empty legacy object to speed up initial record insert
-                           oos.writeObject(new HashMap<String, Object>());
+                    	   if (useLock) {
+                    		   // Write empty legacy object to speed up initial record insert
+                    		   oos.writeObject(new HashMap<String, Object>());
+                    	   } else {
+                               SessionData.serializeAttributes(data, oos);
+                    	   }
                            byte[] bytes = baos.toByteArray();
+                		   LOG.info("SessionData dump for Vhost {} in base64: {}", _context.getVhost(), Base64.getEncoder().encodeToString(bytes));
                            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
                            statement.setBinaryStream(13, bais, bytes.length); //attribute map as blob
                        }
@@ -198,8 +204,10 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                 }
         		LOG.info("<<<<<<<<<< INSERT END: {}", id);
 
-        		// Save with serialized data
-        		doUpdate(id, data);
+        		if (useLock) {
+        			// Save with serialized data
+        			doUpdate(id, data);
+        		}
         }
 
         @Override

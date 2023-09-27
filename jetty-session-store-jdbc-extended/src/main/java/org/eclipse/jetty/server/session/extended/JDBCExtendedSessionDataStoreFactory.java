@@ -25,8 +25,8 @@ import org.eclipse.jetty.server.session.SessionHandler;
 public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFactory
 {
 
-    public static final int DEFAULT_LOCK_PERIOD_MILLIS = 1000; //default of 1000 millis
-    public static final int DEFAULT_DELAY_PERIOD_MILLIS = 1000; //default of 1000 millis
+    public static final int DEFAULT_LOCK_PERIOD_MILLIS = 0; //default of 1000 millis
+    public static final int DEFAULT_DELAY_PERIOD_MILLIS = 250; //default of 1000 millis
 
 	DatabaseAdaptor _adaptor;
 

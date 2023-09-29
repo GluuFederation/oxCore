@@ -16,6 +16,7 @@ package org.eclipse.jetty.server.session.extended;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,6 +25,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.eclipse.jetty.server.session.JDBCSessionDataStore;
 import org.eclipse.jetty.server.session.SessionContext;
@@ -183,7 +186,8 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     statement.setLong(12, System.currentTimeMillis()); // lockTime
 
                     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            ObjectOutputStream oos = new ExtendedObjectOutputStream(baos, _serializationLogSkipped))
+                    		GZIPOutputStream gos = new GZIPOutputStream(baos);
+                            ObjectOutputStream oos = new ExtendedObjectOutputStream(gos, _serializationLogSkipped))
                        {
                     	   if (useLock) {
                     		   // Write empty legacy object to speed up initial record insert
@@ -191,8 +195,11 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     	   } else {
                                SessionData.serializeAttributes(data, oos);
                     	   }
+                    	   gos.finish();
                            byte[] bytes = baos.toByteArray();
-                		   LOG.info("SessionData dump for Vhost {} in base64: {}", _context.getVhost(), Base64.getEncoder().encodeToString(bytes));
+                           if (LOG.isDebugEnabled()) {
+                        	   LOG.debug("SessionData dump in INSERT for Vhost {} in base64: {}", _context.getVhost(), Base64.getEncoder().encodeToString(bytes));
+                           }
                            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
                            statement.setBinaryStream(13, bais, bytes.length); //attribute map as blob
                        }
@@ -229,10 +236,15 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     statement.setNull(7, Types.BIGINT);
 
                     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                         ObjectOutputStream oos = new ExtendedObjectOutputStream(baos, _serializationLogSkipped))
+                    	 GZIPOutputStream gos = new GZIPOutputStream(baos);
+                         ObjectOutputStream oos = new ExtendedObjectOutputStream(gos, _serializationLogSkipped))
                     {
                         SessionData.serializeAttributes(data, oos);
+                  	    gos.finish();
                         byte[] bytes = baos.toByteArray();
+                        if (LOG.isDebugEnabled()) {
+                     	   LOG.debug("SessionData dump in UPDATE for Vhost {} in base64: {}", _context.getVhost(), Base64.getEncoder().encodeToString(bytes));
+                        }
                         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes))
                         {
                             statement.setBinaryStream(8, bais, bytes.length); //attribute map as blob
@@ -319,7 +331,8 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     }
 
                     try (InputStream is = _dbAdaptor.getBlobInputStream(result, _sessionTableSchema.getMapColumn());
-                         ClassLoadingObjectInputStream ois = new ClassLoadingObjectInputStream(is))
+                    	 InputStream gis = new GZIPInputStream(is);
+                         ClassLoadingObjectInputStream ois = new ClassLoadingObjectInputStream(gis))
                     {
                 		LOG.info(">>>>>>>>>> DESERIALIZATION START: {}", id);
                     	if (_delayPeriodMillis > 0) {

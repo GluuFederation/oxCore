@@ -157,7 +157,9 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
     protected void doInsert(String id, SessionData data)
             throws Exception
         {
-        	LOG.info(">>>>>>>>>> INSERT START: {}", id);
+    		if (LOG.isDebugEnabled()) {
+    			LOG.debug(">>>>>>>>>> INSERT START: {}", id);
+    		}
         	boolean useLock = _lockPeriodMillis > 0;
             String s = _sessionTableSchema.getInsertSessionStatementAsString();
 
@@ -209,7 +211,9 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                            LOG.debug("Inserted session {}", data);
                    }
                 }
-        		LOG.info("<<<<<<<<<< INSERT END: {}", id);
+    			if (LOG.isDebugEnabled()) {
+    				LOG.debug("<<<<<<<<<< INSERT END: {}", id);
+    			}
 
         		if (useLock) {
         			// Save with serialized data
@@ -221,7 +225,9 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
         protected void doUpdate(String id, SessionData data)
             throws Exception
         {
-        	LOG.info(">>>>>>>>>> UPDATE START: {}", id);
+        	if (LOG.isDebugEnabled()) {
+        		LOG.debug(">>>>>>>>>> UPDATE START: {}", id);
+        	}
             try (Connection connection = ((org.eclipse.jetty.server.session.extended.DatabaseAdaptor) _dbAdaptor).getConnection())
             {
                 connection.setAutoCommit(true);
@@ -257,13 +263,17 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                         LOG.debug("Updated session {}", data);
                 }
             }
-    		LOG.info("<<<<<<<<<< UPDATE END: {}", id);
+            if (LOG.isDebugEnabled()) {
+            	LOG.debug("<<<<<<<<<< UPDATE END: {}", id);
+            }
         }
 
         @Override
         public SessionData doLoad(String id) throws Exception
         {
-    		LOG.info(">>>>>>>>>> LOAD START: {}", id);
+        	if (LOG.isDebugEnabled()) {
+        		LOG.debug(">>>>>>>>>> LOAD START: {}", id);
+        	}
         	ExtendedSessionData extendedSessionData = doLoadImpl(id, true);
         	if (extendedSessionData.getLockTime() == null) {
             	return extendedSessionData.getSessionData();
@@ -274,21 +284,29 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
         	long currTime = System.currentTimeMillis();
         	long sleepTime = unlockTime - currTime;
         	if (sleepTime > 0) {
-        		LOG.info("<<<<<<<<<< LOAD START DELAY FOR LOCK: {}", id);
+        		if (LOG.isDebugEnabled()) {
+        			LOG.debug("<<<<<<<<<< LOAD START DELAY FOR LOCK: {}", id);
+        		}
 	        	Thread.sleep(sleepTime);
-        		LOG.info(">>>>>>>>>> LOAD END DELAY FOR LOCK: {}", id);
+	        	if (LOG.isDebugEnabled()) {
+	        		LOG.debug(">>>>>>>>>> LOAD END DELAY FOR LOCK: {}", id);
+	        	}
         	}
 
         	// Load after lock expiration
         	extendedSessionData = doLoadImpl(id, false);
 
-    		LOG.info("<<<<<<<<<< LOAD END: {}", id);
+        	if (LOG.isDebugEnabled()) {
+        		LOG.debug("<<<<<<<<<< LOAD END: {}", id);
+        	}
         	return extendedSessionData.getSessionData();
         }
 
         protected ExtendedSessionData doLoadImpl(String id, boolean checkLock) throws Exception
         {
-    		LOG.info("---------- LOAD IMPL: {} : {}", id, checkLock);
+        	if (LOG.isDebugEnabled()) {
+        		LOG.debug("---------- LOAD IMPL: {} : {}", id, checkLock);
+        	}
             try (Connection connection = ((org.eclipse.jetty.server.session.extended.DatabaseAdaptor) _dbAdaptor).getConnection();
                  PreparedStatement statement = _sessionTableSchema.getLoadStatement(connection, id, _context);
                  ResultSet result = statement.executeQuery())
@@ -334,14 +352,22 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     	 InputStream gis = new GZIPInputStream(is);
                          ClassLoadingObjectInputStream ois = new ClassLoadingObjectInputStream(gis))
                     {
-                		LOG.info(">>>>>>>>>> DESERIALIZATION START: {}", id);
+                    	if (LOG.isDebugEnabled()) {
+                    		LOG.debug(">>>>>>>>>> DESERIALIZATION START: {}", id);
+                    	}
                     	if (_delayPeriodMillis > 0) {
-                    		LOG.info(">>>>>>>>>> DESERIALIZATION DELAY: {}", id);
+                    		if (LOG.isDebugEnabled()) {
+                    			LOG.debug(">>>>>>>>>> DESERIALIZATION DELAY: {}", id);
+                    		}
             	        	Thread.sleep(_delayPeriodMillis);
-                    		LOG.info("<<<<<<<<<< DESERIALIZATION RESUME: {}", id);
+            	        	if (LOG.isDebugEnabled()) {
+            	        		LOG.debug("<<<<<<<<<< DESERIALIZATION RESUME: {}", id);
+            	        	}
                     	}
                         SessionData.deserializeAttributes(data, ois);
-                		LOG.info("<<<<<<<<<< DESERIALIZATION END: {}", id);
+                        if (LOG.isDebugEnabled()) {
+                        	LOG.debug("<<<<<<<<<< DESERIALIZATION END: {}", id);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -351,8 +377,9 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     if (LOG.isDebugEnabled())
                         LOG.debug("LOADED session {}", data);
                 }
-                else if (LOG.isDebugEnabled())
+                else if (LOG.isDebugEnabled()) {
                     LOG.debug("No session {}", id);
+                }
 
                 return new ExtendedSessionData(data, null);
             }

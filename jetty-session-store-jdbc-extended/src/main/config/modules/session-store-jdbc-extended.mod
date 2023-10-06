@@ -34,7 +34,7 @@ db-connection-type?=datasource
 #jetty.session.delayTime.millis=250
 #jetty.session.serialization.log.skipped=true
 
-jetty.session.jdbc.blobType=mediumblob
+#jetty.session.jdbc.blobType=
 #jetty.session.jdbc.longType=
 #jetty.session.jdbc.stringType=
 

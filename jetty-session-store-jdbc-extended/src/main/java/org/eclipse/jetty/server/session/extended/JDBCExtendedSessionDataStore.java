@@ -203,6 +203,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                            }
 
                            if (_compressSerializedData) {
+                       		LOG.info("USING COMPRESSION");
                                try (ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
                             		GZIPOutputStream gos = new GZIPOutputStream(baos2)) {
 	                       			gos.write(bytes);
@@ -261,6 +262,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                         }
 
                         if (_compressSerializedData) {
+                    		LOG.info("USING COMPRESSION");
                             try (ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
                          		GZIPOutputStream gos = new GZIPOutputStream(baos2)) {
 	                       			gos.write(bytes);
@@ -404,6 +406,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
         private InputStream getBlobInputStream(ResultSet resultSet) throws SQLException, IOException {
         	InputStream resultStream =_dbAdaptor.getBlobInputStream(resultSet, _sessionTableSchema.getMapColumn());
         	if (_compressSerializedData) {
+        		LOG.info("USING COMPRESSION");
         		try (InputStream gis = new GZIPInputStream(resultStream)) {
         			resultStream = new ByteArrayInputStream(gis.readAllBytes());
         		}

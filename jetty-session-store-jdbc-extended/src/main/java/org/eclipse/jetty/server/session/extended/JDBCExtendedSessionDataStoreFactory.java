@@ -25,8 +25,8 @@ import org.eclipse.jetty.server.session.SessionHandler;
 public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFactory
 {
 
-    public static final int DEFAULT_LOCK_PERIOD_MILLIS = 0; //default of 1000 millis
-    public static final int DEFAULT_DELAY_PERIOD_MILLIS = 250; //default of 1000 millis
+    public static final int DEFAULT_LOCK_PERIOD_MILLIS = 0; //default of 0 millis
+    public static final int DEFAULT_DELAY_PERIOD_MILLIS = 0; //default of 0 millis
 
 	DatabaseAdaptor _adaptor;
 
@@ -35,6 +35,7 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
 	private int _lockPeriodMillis = DEFAULT_LOCK_PERIOD_MILLIS;
 	private int _delayPeriodMillis = DEFAULT_DELAY_PERIOD_MILLIS;
 	private boolean _serializationLogSkipped = false;
+	private boolean _compressSerializedData = false;
 
     @Override
     public SessionDataStore getSessionDataStore(SessionHandler handler)
@@ -48,6 +49,7 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
         ds.setLockPeriodMillis(_lockPeriodMillis);
         ds.setDelayPeriodMillis(_delayPeriodMillis);
         ds.setSerializationLogSkipped(_serializationLogSkipped);
+        ds.setCompressSerializedData(_serializationLogSkipped);
         return ds;
     }
 
@@ -91,5 +93,13 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
 
 	public void setSerializationLogSkipped(boolean serializationLogSkipped) {
 		_serializationLogSkipped = serializationLogSkipped;
+	}
+
+	public boolean getCompressSerializedData() {
+		return _compressSerializedData;
+	}
+
+	public void setCompressSerializedData(boolean compressSerializedData) {
+		_compressSerializedData = compressSerializedData;
 	}
 }

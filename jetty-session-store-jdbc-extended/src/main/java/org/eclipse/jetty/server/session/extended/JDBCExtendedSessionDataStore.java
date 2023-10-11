@@ -15,6 +15,7 @@ package org.eclipse.jetty.server.session.extended;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
@@ -51,6 +52,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
 	private int _lockPeriodMillis;
 	private int _delayPeriodMillis;
 	private boolean _serializationLogSkipped = false;
+	private boolean _compressSerializedData = false;
 
     /**
      * SessionTableSchema
@@ -187,8 +189,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     statement.setLong(12, System.currentTimeMillis()); // lockTime
 
                     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    		GZIPOutputStream gos = new GZIPOutputStream(baos);
-                            ObjectOutputStream oos = new ExtendedObjectOutputStream(gos, _serializationLogSkipped))
+                            ObjectOutputStream oos = new ExtendedObjectOutputStream(baos, _serializationLogSkipped))
                        {
                     	   if (useLock) {
                     		   // Write empty legacy object to speed up initial record insert
@@ -196,13 +197,23 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     	   } else {
                                SessionData.serializeAttributes(data, oos);
                     	   }
-                    	   gos.finish();
                            byte[] bytes = baos.toByteArray();
                            if (LOG.isDebugEnabled()) {
                         	   LOG.debug("SessionData dump in INSERT for Vhost {} in base64: {}", _context.getVhost(), Base64.getEncoder().encodeToString(bytes));
                            }
-                           ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-                           statement.setBinaryStream(13, bais, bytes.length); //attribute map as blob
+
+                           if (_compressSerializedData) {
+                               try (ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+                            		GZIPOutputStream gos = new GZIPOutputStream(baos2)) {
+	                       			gos.write(bytes);
+	                          	    gos.finish();
+	                       			bytes = baos.toByteArray();
+                    	       }
+                    	   }
+                           try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes))
+                           {
+                               statement.setBinaryStream(13, bais, bytes.length); //attribute map as blob
+                           }
                        }
 
                        statement.executeUpdate();
@@ -241,15 +252,22 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     statement.setNull(7, Types.BIGINT);
 
                     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    	 GZIPOutputStream gos = new GZIPOutputStream(baos);
-                         ObjectOutputStream oos = new ExtendedObjectOutputStream(gos, _serializationLogSkipped))
+                         ObjectOutputStream oos = new ExtendedObjectOutputStream(baos, _serializationLogSkipped))
                     {
                         SessionData.serializeAttributes(data, oos);
-                  	    gos.finish();
                         byte[] bytes = baos.toByteArray();
                         if (LOG.isDebugEnabled()) {
                      	   LOG.debug("SessionData dump in UPDATE for Vhost {} in base64: {}", _context.getVhost(), Base64.getEncoder().encodeToString(bytes));
                         }
+
+                        if (_compressSerializedData) {
+                            try (ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+                         		GZIPOutputStream gos = new GZIPOutputStream(baos2)) {
+	                       			gos.write(bytes);
+	                          	    gos.finish();
+	                       			bytes = baos.toByteArray();
+                 	       }
+                 	    }
                         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes))
                         {
                             statement.setBinaryStream(8, bais, bytes.length); //attribute map as blob
@@ -347,9 +365,8 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     	LOG.debug("Data for deserialization in base64: {}", Base64.getEncoder().encodeToString(buffer.toByteArray()));
                     }
 
-                    try (InputStream is = _dbAdaptor.getBlobInputStream(result, _sessionTableSchema.getMapColumn());
-                    	 InputStream gis = new GZIPInputStream(is);
-                         ClassLoadingObjectInputStream ois = new ClassLoadingObjectInputStream(gis))
+                    try (InputStream is = getBlobInputStream(result);
+                         ClassLoadingObjectInputStream ois = new ClassLoadingObjectInputStream(is))
                     {
                     	if (LOG.isDebugEnabled()) {
                     		LOG.debug(">>>>>>>>>> DESERIALIZATION START: {}", id);
@@ -382,6 +399,17 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
 
                 return new ExtendedSessionData(data, null);
             }
+        }
+        
+        private InputStream getBlobInputStream(ResultSet resultSet) throws SQLException, IOException {
+        	InputStream resultStream =_dbAdaptor.getBlobInputStream(resultSet, _sessionTableSchema.getMapColumn());
+        	if (_compressSerializedData) {
+        		try (InputStream gis = new GZIPInputStream(resultStream)) {
+        			resultStream = new ByteArrayInputStream(gis.readAllBytes());
+        		}
+        		
+        	}
+        	return resultStream;
         }
         
         private boolean isLockExpired(Long lockTime) {
@@ -443,6 +471,15 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
 
 		public void setSerializationLogSkipped(boolean serializationLogSkipped) {
 			_serializationLogSkipped = serializationLogSkipped;
+		}
+
+        @ManagedAttribute(value = "specify if serialized data should be compressed", readonly = true)
+		public boolean getCompressSerializedData() {
+			return _compressSerializedData;
+		}
+
+		public void setCompressSerializedData(boolean compressSerializedData) {
+			_compressSerializedData = compressSerializedData;
 		}
 
 }

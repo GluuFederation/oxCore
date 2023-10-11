@@ -31,10 +31,11 @@ db-connection-type?=datasource
 #jetty.session.gracePeriod.seconds=3600
 #jetty.session.savePeriod.seconds=0
 #jetty.session.lockTime.millis=0
-#jetty.session.delayTime.millis=250
+#jetty.session.delayTime.millis=0
 #jetty.session.serialization.log.skipped=true
+#jetty.session.serialization.compress.data=false
 
-#jetty.session.jdbc.blobType=
+#jetty.session.jdbc.blobType=mediumblob
 #jetty.session.jdbc.longType=
 #jetty.session.jdbc.stringType=
 

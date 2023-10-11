@@ -13,6 +13,7 @@
         <Set name="lockPeriodMillis" property="jetty.session.lockTime.millis"/>
         <Set name="delayPeriodMillis" property="jetty.session.delayTime.millis"/>
         <Set name="serializationLogSkipped" property="jetty.session.serialization.log.skipped"/>
+        <Set name="compressSerializedData" property="jetty.session.serialization.compress.data"/>
 
         <Set name="databaseAdaptor">
           <Ref refid="databaseExtendedAdaptor" />

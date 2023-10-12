@@ -410,8 +410,8 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
         		try (InputStream gis = new GZIPInputStream(resultStream)) {
         			resultStream = new ByteArrayInputStream(gis.readAllBytes());
         		}
-        		
         	}
+
         	return resultStream;
         }
         

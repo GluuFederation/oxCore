@@ -49,7 +49,7 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
         ds.setLockPeriodMillis(_lockPeriodMillis);
         ds.setDelayPeriodMillis(_delayPeriodMillis);
         ds.setSerializationLogSkipped(_serializationLogSkipped);
-        ds.setCompressSerializedData(_serializationLogSkipped);
+        ds.setCompressSerializedData(_compressSerializedData);
         return ds;
     }
 

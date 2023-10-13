@@ -203,7 +203,6 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                            }
 
                            if (_compressSerializedData) {
-                       		LOG.info("USING COMPRESSION");
                                try (ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
                             		GZIPOutputStream gos = new GZIPOutputStream(baos2)) {
 	                       			gos.write(bytes);

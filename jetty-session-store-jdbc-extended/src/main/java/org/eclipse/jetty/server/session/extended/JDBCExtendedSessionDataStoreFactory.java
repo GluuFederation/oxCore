@@ -34,7 +34,6 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
 
 	private int _lockPeriodMillis = DEFAULT_LOCK_PERIOD_MILLIS;
 	private int _delayPeriodMillis = DEFAULT_DELAY_PERIOD_MILLIS;
-	private boolean _serializationLogSkipped = false;
 	private boolean _compressSerializedData = false;
 
     @Override
@@ -48,7 +47,6 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
         
         ds.setLockPeriodMillis(_lockPeriodMillis);
         ds.setDelayPeriodMillis(_delayPeriodMillis);
-        ds.setSerializationLogSkipped(_serializationLogSkipped);
         ds.setCompressSerializedData(_compressSerializedData);
         return ds;
     }
@@ -85,14 +83,6 @@ public class JDBCExtendedSessionDataStoreFactory extends JDBCSessionDataStoreFac
 
 	public void setDelayPeriodMillis(int millis) {
 		this._delayPeriodMillis = millis;
-	}
-
-	public boolean isSerializationLogSkipped() {
-		return _serializationLogSkipped;
-	}
-
-	public void setSerializationLogSkipped(boolean serializationLogSkipped) {
-		_serializationLogSkipped = serializationLogSkipped;
 	}
 
 	public boolean getCompressSerializedData() {

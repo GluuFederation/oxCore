@@ -51,7 +51,6 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
 
 	private int _lockPeriodMillis;
 	private int _delayPeriodMillis;
-	private boolean _serializationLogSkipped = false;
 	private boolean _compressSerializedData = false;
 
     /**
@@ -189,7 +188,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     statement.setLong(12, System.currentTimeMillis()); // lockTime
 
                     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            ObjectOutputStream oos = new ExtendedObjectOutputStream(baos, _serializationLogSkipped))
+                            ObjectOutputStream oos = new ExtendedObjectOutputStream(baos))
                        {
                     	   if (useLock) {
                     		   // Write empty legacy object to speed up initial record insert
@@ -252,7 +251,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                     statement.setNull(7, Types.BIGINT);
 
                     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                         ObjectOutputStream oos = new ExtendedObjectOutputStream(baos, _serializationLogSkipped))
+                         ObjectOutputStream oos = new ExtendedObjectOutputStream(baos))
                     {
                         SessionData.serializeAttributes(data, oos);
                         byte[] bytes = baos.toByteArray();
@@ -464,15 +463,6 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
         {
         	_delayPeriodMillis = millis;
         }
-
-        @ManagedAttribute(value = "specify if serializer should log warn message on skip object", readonly = true)
-		public boolean isSerializationLogSkipped() {
-			return _serializationLogSkipped;
-		}
-
-		public void setSerializationLogSkipped(boolean serializationLogSkipped) {
-			_serializationLogSkipped = serializationLogSkipped;
-		}
 
         @ManagedAttribute(value = "specify if serialized data should be compressed", readonly = true)
 		public boolean getCompressSerializedData() {

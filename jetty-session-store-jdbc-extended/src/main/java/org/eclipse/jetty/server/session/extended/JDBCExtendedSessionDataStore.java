@@ -206,7 +206,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                             		GZIPOutputStream gos = new GZIPOutputStream(baos2)) {
 	                       			gos.write(bytes);
 	                          	    gos.finish();
-	                       			bytes = baos.toByteArray();
+	                       			bytes = baos2.toByteArray();
                     	       }
                     	   }
                            try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes))
@@ -264,7 +264,7 @@ public class JDBCExtendedSessionDataStore extends JDBCSessionDataStore
                          		GZIPOutputStream gos = new GZIPOutputStream(baos2)) {
 	                       			gos.write(bytes);
 	                          	    gos.finish();
-	                       			bytes = baos.toByteArray();
+	                       			bytes = baos2.toByteArray();
                  	       }
                  	    }
                         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes))

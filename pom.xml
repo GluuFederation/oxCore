@@ -202,5 +202,10 @@
             <name>Gluu project repository</name>
             <url>https://maven.gluu.org/maven</url>
         </repository>
+	<repository>
+		<id>shib-release</id>
+		<name>shib release</name>
+		<url>https://build.shibboleth.net/nexus/content/groups/public</url>
+	</repository>
     </repositories>
 </project>

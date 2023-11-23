@@ -6,38 +6,46 @@
 
 package org.gluu.net;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.net.ssl.SSLContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
-import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.gluu.model.net.HttpServiceResponse;
 import org.gluu.util.StringHelper;
@@ -52,65 +60,81 @@ import org.slf4j.LoggerFactory;
 public class HttpServiceUtility implements Serializable {
 
 	private static final long serialVersionUID = -2398422090669045605L;
-	
-	private static int SC_OK = 200;
 
 	private static final Logger LOG = LoggerFactory.getLogger(HttpServiceUtility.class);
 
 	private Base64 base64;
-	
+
+	private PoolingHttpClientConnectionManager connectionManager;
+
 	public void init() {
-		this.base64 = new Base64();
+        connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(200); // Increase max total connection to 200
+        connectionManager.setDefaultMaxPerRoute(50); // Increase default max connection per route to 50
+
+        this.base64 = new Base64();
 	}
 
-	public HttpClient getHttpsClientTrustAll() {
-	    try {
-	        SSLSocketFactory sf = new SSLSocketFactory(new TrustStrategy(){
-	            @Override
-	            public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-	                return true;
-	            }
-	        }, new AllowAllHostnameVerifier());
+	public CloseableHttpClient getHttpsClientTrustAll() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+    	getLogger().trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
-	        PlainSocketFactory psf = PlainSocketFactory.getSocketFactory();
+    	TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
+	    SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
+	    SSLConnectionSocketFactory sslConSocFactory = new SSLConnectionSocketFactory(sslContext, 
+	      NoopHostnameVerifier.INSTANCE);
 
-	        SchemeRegistry registry = new SchemeRegistry();
-	        registry.register(new Scheme("http", 80, psf));
-	        registry.register(new Scheme("https", 443, sf));
-	        ClientConnectionManager ccm = new PoolingClientConnectionManager(registry);
-	        return new DefaultHttpClient(ccm);
-	    } catch (Exception ex) {
-	    	getLogger().error("Failed to create TrustAll https client", ex);
-	        return new DefaultHttpClient();
-	    }
+	    return HttpClients.custom().setSSLSocketFactory(sslConSocFactory)
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.setConnectionManager(connectionManager).build();
 	}
 
-	public HttpClient getHttpsClient() {
-		HttpClient httpClient = new SslDefaultHttpClient();
+	public CloseableHttpClient getHttpsClient() {
+    	getLogger().trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
-		return httpClient;
+    	return HttpClients.custom()
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.setConnectionManager(connectionManager).build();
 	}
 
-	public HttpClient getHttpsClient(String trustStoreType, String trustStorePath, String trustStorePassword) {
-		HttpClient httpClient = new SslDefaultHttpClient(trustStoreType, trustStorePath, trustStorePassword);
+	public CloseableHttpClient getHttpsClient(HttpRoutePlanner routerPlanner) {
+    	getLogger().trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
-		return httpClient;
+    	return HttpClients.custom()
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.setConnectionManager(connectionManager).setRoutePlanner(routerPlanner).build();
+		
 	}
 
-	public HttpClient getHttpsClient(String trustStoreType, String trustStorePath, String trustStorePassword,
-			String keyStoreType, String keyStorePath, String keyStorePassword) {
-		HttpClient httpClient = new SslDefaultHttpClient(trustStoreType, trustStorePath, trustStorePassword,
-				keyStoreType, keyStorePath, keyStorePassword);
+	public CloseableHttpClient getHttpsClient(String trustStoreType, String trustStorePath, String trustStorePassword) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
+    	getLogger().trace("Connection manager stats: {}", connectionManager.getTotalStats());
 
-		return httpClient;
+    	SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(new File(trustStorePath), trustStorePassword.toCharArray()).build();
+	    SSLConnectionSocketFactory sslConSocFactory = new SSLConnectionSocketFactory(sslContext);
+
+	    return HttpClients.custom().setSSLSocketFactory(sslConSocFactory)
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.setConnectionManager(connectionManager).build();
 	}
-	
+
+	public CloseableHttpClient getHttpsClient(String trustStoreType, String trustStorePath, String trustStorePassword,
+			String keyStoreType, String keyStorePath, String keyStorePassword) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, UnrecoverableKeyException {
+    	getLogger().trace("Connection manager stats: {}", connectionManager.getTotalStats());
+
+    	SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(new File(trustStorePath), trustStorePassword.toCharArray())
+				.loadKeyMaterial(new File(keyStorePath), keyStorePassword.toCharArray(), keyStorePassword.toCharArray()).build();
+	    SSLConnectionSocketFactory sslConSocFactory = new SSLConnectionSocketFactory(sslContext);
+
+	    return HttpClients.custom().setSSLSocketFactory(sslConSocFactory)
+				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+				.setConnectionManager(connectionManager).build();
+	}
+
 	public HttpServiceResponse executePost(HttpClient httpClient, String uri, String authData, Map<String, String> headers, String postData, ContentType contentType) {
         HttpPost httpPost = new HttpPost(uri);
         if (StringHelper.isNotEmpty(authData)) {
         	httpPost.setHeader("Authorization", "Basic " + authData);
         }
-        
+
         if (headers != null) {
         	for (Entry<String, String> headerEntry : headers.entrySet()) {
             	httpPost.setHeader(headerEntry.getKey(), headerEntry.getValue());
@@ -119,7 +143,7 @@ public class HttpServiceUtility implements Serializable {
 
         StringEntity stringEntity = new StringEntity(postData, contentType);
 		httpPost.setEntity(stringEntity);
-		
+
         try {
         	HttpResponse httpResponse = httpClient.execute(httpPost);
 
@@ -127,7 +151,7 @@ public class HttpServiceUtility implements Serializable {
 		} catch (IOException ex) {
 	    	getLogger().error("Failed to execute post request", ex);
 		}
-        
+
         return null;
 	}
 
@@ -184,7 +208,7 @@ public class HttpServiceUtility implements Serializable {
 	}
 
 	public byte[] getResponseContent(HttpResponse httpResponse) throws IOException {
-        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != SC_OK)) {
+		if ((httpResponse == null) || !isResponseStastusCodeOk(httpResponse)) {
         	return null;
         }
 
@@ -203,7 +227,7 @@ public class HttpServiceUtility implements Serializable {
 	}
 
 	public void consume(HttpResponse httpResponse) throws IOException {
-        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != SC_OK)) {
+		if ((httpResponse == null) || !isResponseStastusCodeOk(httpResponse)) {
         	return;
         }
 
@@ -240,13 +264,14 @@ public class HttpServiceUtility implements Serializable {
 
 	public boolean isResponseStastusCodeOk(HttpResponse httpResponse) {
 		int responseStastusCode = httpResponse.getStatusLine().getStatusCode();
-		if (responseStastusCode == HttpStatus.SC_OK) {
+		if ((responseStastusCode == HttpStatus.SC_OK) || (responseStastusCode == HttpStatus.SC_CREATED) || (responseStastusCode == HttpStatus.SC_ACCEPTED)
+				|| (responseStastusCode == HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION) || (responseStastusCode == HttpStatus.SC_NO_CONTENT) || (responseStastusCode == HttpStatus.SC_RESET_CONTENT)
+				|| (responseStastusCode == HttpStatus.SC_PARTIAL_CONTENT) || (responseStastusCode == HttpStatus.SC_MULTI_STATUS)) {
 			return true;
 		}
 		
 		return false;
 	}
-	
 
 	public boolean isContentTypeXml(HttpResponse httpResponse) {
 		Header contentType = httpResponse.getEntity().getContentType();
@@ -273,6 +298,13 @@ public class HttpServiceUtility implements Serializable {
     	}
     	
     	return redirectUrl.toLowerCase();
+    }
+
+	public HttpRoutePlanner buildDefaultRoutePlanner(final String proxy) {
+		//Creating an HttpHost object for proxy
+		HttpHost proxyHost = new HttpHost(proxy); 
+    	
+    	return new DefaultProxyRoutePlanner(proxyHost);
     }
 	
 	public Logger getLogger() {

@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package org.gluu.util.ilocale;
+package org.gluu.util.locale;
 
 import java.util.List;
 import java.util.Locale;

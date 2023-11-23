@@ -75,6 +75,12 @@ public class HttpServiceUtility implements Serializable {
         this.base64 = new Base64();
 	}
 
+	public void destroy() {
+		if (connectionManager != null) {
+			connectionManager.shutdown();
+		}
+	}
+
 	public CloseableHttpClient getHttpsClientTrustAll() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
     	getLogger().trace("Connection manager stats: {}", connectionManager.getTotalStats());
 

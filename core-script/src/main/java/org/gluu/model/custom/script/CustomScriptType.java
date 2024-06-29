@@ -17,6 +17,8 @@ import org.gluu.model.custom.script.type.ciba.DummyEndUserNotificationType;
 import org.gluu.model.custom.script.type.ciba.EndUserNotificationType;
 import org.gluu.model.custom.script.type.client.ClientRegistrationType;
 import org.gluu.model.custom.script.type.client.DummyClientRegistrationType;
+import org.gluu.model.custom.script.type.fido2.DummyFido2ExtensionType;
+import org.gluu.model.custom.script.type.fido2.Fido2ExtensionType;
 import org.gluu.model.custom.script.type.id.DummyIdGeneratorType;
 import org.gluu.model.custom.script.type.id.IdGeneratorType;
 import org.gluu.model.custom.script.type.idp.DummyIdpType;
@@ -89,7 +91,8 @@ public enum CustomScriptType implements AttributeEnum {
     REVOKE_TOKEN("revoke_token", "Revoke Token", RevokeTokenType.class, CustomScript.class, "RevokeToken", new DummyRevokeTokenType()),
     PERSISTENCE_EXTENSION("persistence_extension", "Persistence Extension", PersistenceType.class, CustomScript.class, "PersistenceExtension", new DummyPeristenceType()),
     IDP("idp", "Idp Extension", IdpType.class, CustomScript.class, "IdpExtension", new DummyIdpType()),
-    UPDATE_TOKEN("update_token", "Update Token", UpdateTokenType.class, CustomScript.class, "UpdateToken", new DummyUpdateTokenType());
+    UPDATE_TOKEN("update_token", "Update Token", UpdateTokenType.class, CustomScript.class, "UpdateToken", new DummyUpdateTokenType()),
+    FIDO2_EXTENSION("fido2_extension", "Fido2 Extension", Fido2ExtensionType.class, CustomScript.class, "Fido2Extension", new DummyFido2ExtensionType());
 
     private String value;
     private String displayName;

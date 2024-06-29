@@ -43,6 +43,7 @@
 		<module>server</module>
 		<module>oxRadius</module>
 		<module>demo-cdi</module>
+		<module>doc</module>
 	</modules>
 
 	<dependencyManagement>

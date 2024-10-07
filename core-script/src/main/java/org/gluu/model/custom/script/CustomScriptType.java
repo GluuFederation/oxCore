@@ -13,6 +13,8 @@ import org.gluu.model.custom.script.type.auth.DummyPersonAuthenticationType;
 import org.gluu.model.custom.script.type.auth.PersonAuthenticationType;
 import org.gluu.model.custom.script.type.authz.ConsentGatheringType;
 import org.gluu.model.custom.script.type.authz.DummyConsentGatheringType;
+import org.gluu.model.custom.script.type.authzchallenge.AuthorizationChallengeType;
+import org.gluu.model.custom.script.type.authzchallenge.DummyAuthorizationChallengeType;
 import org.gluu.model.custom.script.type.ciba.DummyEndUserNotificationType;
 import org.gluu.model.custom.script.type.ciba.EndUserNotificationType;
 import org.gluu.model.custom.script.type.client.ClientRegistrationType;
@@ -43,9 +45,10 @@ import org.gluu.model.custom.script.type.session.ApplicationSessionType;
 import org.gluu.model.custom.script.type.session.DummyApplicationSessionType;
 import org.gluu.model.custom.script.type.spontaneous.DummySpontaneousScopeType;
 import org.gluu.model.custom.script.type.spontaneous.SpontaneousScopeType;
+import org.gluu.model.custom.script.type.token.DummyUpdateTokenType;
+import org.gluu.model.custom.script.type.token.UpdateTokenType;
 import org.gluu.model.custom.script.type.uma.*;
 import org.gluu.model.custom.script.type.user.*;
-import org.gluu.model.custom.script.type.token.*;
 import org.gluu.persist.annotation.AttributeEnum;
 
 import java.util.HashMap;
@@ -60,6 +63,7 @@ public enum CustomScriptType implements AttributeEnum {
 
     PERSON_AUTHENTICATION("person_authentication", "Person Authentication", PersonAuthenticationType.class, AuthenticationCustomScript.class,
             "PersonAuthentication", new DummyPersonAuthenticationType()),
+    AUTHORIZATION_CHALLENGE("authorization_challenge", "Authorization Challenge", AuthorizationChallengeType.class, CustomScript.class, "AuthorizationChallenge", new DummyAuthorizationChallengeType()),
     INTROSPECTION("introspection", "Introspection", IntrospectionType.class, CustomScript.class, "Introspection", new DummyIntrospectionType()),
     RESOURCE_OWNER_PASSWORD_CREDENTIALS("resource_owner_password_credentials", "Resource Owner Password Credentials", ResourceOwnerPasswordCredentialsType.class, CustomScript.class, "ResourceOwnerPasswordCredentials", new DummyResourceOwnerPasswordCredentialsType()),
     APPLICATION_SESSION("application_session", "Application Session", ApplicationSessionType.class, CustomScript.class, "ApplicationSession",
